@@ -1,101 +1,165 @@
+// Handle the "Next" button click
 function nextStep() {
-    const username = document.getElementById('username').value.trim();
+    var username = document.getElementById("username").value;
     if (username) {
-        localStorage.setItem('currentUser', username);
-        document.getElementById('username-section').classList.add('hidden');
-        document.getElementById('team-section').classList.remove('hidden');
+        localStorage.setItem("username", username);  // Save username to local storage
+        document.getElementById("username-section").classList.add("hidden");
+        document.getElementById("team-section").classList.remove("hidden");
     } else {
-        alert('Please enter a username.');
+        alert("Please enter a valid username.");
     }
 }
 
+// Handle form submission
 function submitData() {
-    const username = localStorage.getItem('currentUser');
-    const teamName = document.getElementById('team-name').value.trim();
-    const teamNumber = document.getElementById('team-number').value.trim();
-    const defense = parseInt(document.getElementById('defense').value) || 0;
-    const strategy = parseInt(document.getElementById('strategy').value) || 0;
-    const effectiveness = parseInt(document.getElementById('effectiveness').value) || 0;
-    const driveSkill = parseInt(document.getElementById('drive-skill').value) || 0;
-    const scoring = parseInt(document.getElementById('scoring').value) || 0;
-    const consistency = parseInt(document.getElementById('consistency').value) || 0;
-    const notes = document.getElementById('notes').value.trim();
+    var username = localStorage.getItem("username");
+    var teamName = document.getElementById("team-name").value;
+    var teamNumber = document.getElementById("team-number").value;
+    var defense = document.getElementById("defense").value;
+    var strategy = document.getElementById("strategy").value;
+    var effectiveness = document.getElementById("effectiveness").value;
+    var driveSkill = document.getElementById("drive-skill").value;
+    var scoring = document.getElementById("scoring").value;
+    var consistency = document.getElementById("consistency").value;
+    var notes = document.getElementById("notes").value;
 
-    if (!teamName || !teamNumber) {
-        alert('Please enter both the team name and number.');
-        return;
-    }
+    if (teamName && teamNumber && defense && strategy && effectiveness && driveSkill && scoring && consistency) {
+        // Create an object with the form data
+        var data = {
+            username: username,
+            teamName: teamName,
+            teamNumber: teamNumber,
+            defense: defense,
+            strategy: strategy,
+            effectiveness: effectiveness,
+            driveSkill: driveSkill,
+            scoring: scoring,
+            consistency: consistency,
+            notes: notes
+        };
 
-    const scores = { defense, strategy, effectiveness, driveSkill, scoring, consistency };
-    const averageScore = (defense + strategy + effectiveness + driveSkill + scoring + consistency) / 6;
-    const highestScore = Math.max(defense, strategy, effectiveness, driveSkill, scoring, consistency);
-
-    const report = {
-        username,
-        teamName,
-        teamNumber,
-        scores,
-        averageScore,
-        highestScore,
-        notes
-    };
-
-    let scoutingData = JSON.parse(localStorage.getItem('scoutingData')) || [];
-    scoutingData.push(report);
-    localStorage.setItem('scoutingData', JSON.stringify(scoutingData));
-
-    alert('Submission saved!');
-    document.getElementById('team-section').reset();
-}
-
-function showAdmin() {
-    document.getElementById('admin-section').classList.remove('hidden');
-}
-
-function accessAdmin() {
-    const password = document.getElementById('admin-password').value;
-    if (password === 'Pusheen#99') {
-        loadRankings();
-        document.getElementById('rankings-section').classList.remove('hidden');
-        document.getElementById('clear-history-btn').classList.remove('hidden');
+        // Use Fetch API to send data to the Flask backend
+        fetch('https://backend-8i2m.onrender.com/submit', {  // Updated URL
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert("Data submitted successfully!");
+            document.getElementById("team-section").classList.add("hidden");
+            document.getElementById("username-section").classList.remove("hidden");
+        })
+        .catch((error) => {
+            console.error("Error submitting data:", error);
+            alert("There was an error submitting the data.");
+        });
     } else {
-        alert('Incorrect password.');
+        alert("Please fill in all fields.");
     }
 }
 
-function loadRankings() {
-    let scoutingData = JSON.parse(localStorage.getItem('scoutingData')) || [];
-    scoutingData.sort((a, b) => b.averageScore - a.averageScore);
-
-    const rankingsTable = document.getElementById('rankings-table').getElementsByTagName('tbody')[0];
-    rankingsTable.innerHTML = '';
-
-    scoutingData.forEach(entry => {
-        const row = rankingsTable.insertRow();
-        row.insertCell(0).textContent = entry.teamName;
-        row.insertCell(1).textContent = entry.teamNumber;
-        row.insertCell(2).textContent = entry.averageScore.toFixed(2);
-        row.insertCell(3).textContent = entry.highestScore;
-        row.insertCell(4).textContent = entry.username;
-        
-        // Detailed scores
-        row.insertCell(5).textContent = entry.scores.defense;
-        row.insertCell(6).textContent = entry.scores.strategy;
-        row.insertCell(7).textContent = entry.scores.effectiveness;
-        row.insertCell(8).textContent = entry.scores.driveSkill;
-        row.insertCell(9).textContent = entry.scores.scoring;
-        row.insertCell(10).textContent = entry.scores.consistency;
-        
-        // Notes column
-        row.insertCell(11).textContent = entry.notes || "No notes";
-    });
+// Handle the "Admin" button click to show admin login
+function showAdmin() {
+    document.getElementById("admin-login").classList.add("hidden");
+    document.getElementById("admin-section").classList.remove("hidden");
 }
 
+// Handle admin password submission
+function accessAdmin() {
+    var password = document.getElementById("admin-password").value;
+    if (password === "admin") {
+        document.getElementById("admin-section").classList.add("hidden");
+        document.getElementById("rankings-section").classList.remove("hidden");
+        document.getElementById("clear-history-btn").classList.remove("hidden");
+        fetchRankings();  // Load the rankings after successful login
+    } else {
+        alert("Invalid password.");
+    }
+}
+
+// Fetch and display rankings from the Flask backend
+function fetchRankings() {
+    fetch('https://backend-8i2m.onrender.com/rankings')  // Updated URL
+        .then(response => response.json())
+        .then(data => {
+            const rankingsBody = document.getElementById("rankings-body");
+            rankingsBody.innerHTML = "";  // Clear existing table data
+
+            data.forEach(entry => {
+                const row = rankingsBody.insertRow();
+                row.insertCell(0).innerText = entry.teamName;
+                row.insertCell(1).innerText = entry.teamNumber;
+                row.insertCell(2).innerText = entry.avgScore;
+                row.insertCell(3).innerText = entry.highestScore;
+                row.insertCell(4).innerText = entry.username;
+                row.insertCell(5).innerText = entry.defense;
+                row.insertCell(6).innerText = entry.strategy;
+                row.insertCell(7).innerText = entry.effectiveness;
+                row.insertCell(8).innerText = entry.driveSkill;
+                row.insertCell(9).innerText = entry.scoring;
+                row.insertCell(10).innerText = entry.consistency;
+                row.insertCell(11).innerText = entry.notes;
+
+                // Add a Delete button to the row
+                const deleteCell = row.insertCell(12);
+                const deleteButton = document.createElement("button");
+                deleteButton.innerText = "Delete";
+                deleteButton.onclick = () => deleteEntry(entry.teamNumber);  // Pass teamNumber to delete function
+                deleteCell.appendChild(deleteButton);
+            });
+        })
+        .catch((error) => {
+            console.error("Error fetching rankings:", error);
+        });
+}
+
+// Handle deletion of a specific entry
+function deleteEntry(teamNumber) {
+    if (confirm("Are you sure you want to delete this entry?")) {
+        fetch('https://backend-8i2m.onrender.com/delete', {  // Updated URL
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ teamNumber: teamNumber })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Entry deleted successfully:', data);
+            // Optionally, remove the row from the table
+            const row = document.querySelector(`tr[data-team-number="${teamNumber}"]`);
+            if (row) {
+                row.remove();
+            }
+        })
+        .catch((error) => {
+            console.error("Error deleting entry:", error);
+        });
+    }
+}
+
+// Clear history (admin feature)
 function clearHistory() {
-    const confirmation = confirm('Are you sure you want to clear all team data?');
-    if (confirmation) {
-        localStorage.removeItem('scoutingData');
-        alert('History cleared!');
-        loadRankings();  // Reload the rankings table to show it's empty now
+    if (confirm("Are you sure you want to clear all data?")) {
+        fetch('https://backend-8i2m.onrender.com/clear', {  // Updated URL
+            method: 'POST',
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert("History cleared!");
+            fetchRankings();  // Refresh rankings after clearing history
+        })
+        .catch((error) => {
+            console.error("Error clearing history:", error);
+            alert("There was an error clearing the data.");
+        });
     }
 }

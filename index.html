@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FTC Scouting App</title>
+    <meta name="apple-mobile-web-app-title" content="Perceptive">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="default">
+
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -67,10 +68,11 @@
                         <th>Drive Skill</th>
                         <th>Scoring</th>
                         <th>Consistency</th>
-                        <th>Notes</th> <!-- New Notes Column -->
+                        <th>Notes</th>
+                        <th>Actions</th> <!-- Added Actions column for the delete button -->
                     </tr>
                 </thead>
-                <tbody></tbody>
+                <tbody id="rankings-body"></tbody>
             </table>
             <!-- Clear History Button -->
             <button id="clear-history-btn" class="hidden" onclick="clearHistory()">Clear History</button>
