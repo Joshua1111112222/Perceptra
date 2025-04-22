@@ -1,3 +1,8 @@
+// Initialize forms count on page load
+document.addEventListener('DOMContentLoaded', function() {
+    updateFormsCount();
+});
+
 // Handle the "Next" button click
 function nextStep() {
     var username = document.getElementById("username").value;
@@ -10,7 +15,7 @@ function nextStep() {
     }
 }
 
-// Handle form submission
+// Handle form submission to local storage
 function submitData() {
     var username = localStorage.getItem("username");
     var teamName = document.getElementById("team-name").value;
@@ -35,29 +40,85 @@ function submitData() {
             driveSkill: driveSkill,
             scoring: scoring,
             consistency: consistency,
-            notes: notes
+            notes: notes,
+            timestamp: new Date().toISOString()
         };
 
-        // Use Fetch API to send data to the Flask backend
-        fetch('https://backend-8i2m.onrender.com/submit', {  // Updated URL
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data)
-        })
-        .then(response => response.json())
-        .then(data => {
-            alert("Data submitted successfully!");
-            document.getElementById("team-section").classList.add("hidden");
-            document.getElementById("username-section").classList.remove("hidden");
-        })
-        .catch((error) => {
-            console.error("Error submitting data:", error);
-            alert("There was an error submitting the data.");
-        });
+        // Save to local storage
+        saveToLocalStorage(data);
+        
+        // Clear form
+        document.getElementById("team-name").value = '';
+        document.getElementById("team-number").value = '';
+        document.getElementById("defense").value = '';
+        document.getElementById("strategy").value = '';
+        document.getElementById("effectiveness").value = '';
+        document.getElementById("drive-skill").value = '';
+        document.getElementById("scoring").value = '';
+        document.getElementById("consistency").value = '';
+        document.getElementById("notes").value = '';
+        
+        alert("Form saved locally! Click 'Upload' when ready to send to server.");
+        document.getElementById("team-section").classList.add("hidden");
+        document.getElementById("username-section").classList.remove("hidden");
     } else {
         alert("Please fill in all fields.");
+    }
+}
+
+// Save data to local storage
+function saveToLocalStorage(data) {
+    let forms = JSON.parse(localStorage.getItem('savedForms') || '[]');
+    forms.push(data);
+    localStorage.setItem('savedForms', JSON.stringify(forms));
+    updateFormsCount();
+}
+
+// Update the forms count display
+function updateFormsCount() {
+    let forms = JSON.parse(localStorage.getItem('savedForms') || '[]');
+    document.getElementById('forms-count').textContent = forms.length;
+}
+
+// Upload all saved forms to the server
+function uploadData() {
+    let forms = JSON.parse(localStorage.getItem('savedForms') || '[]');
+    
+    if (forms.length === 0) {
+        alert("No forms to upload!");
+        return;
+    }
+
+    if (confirm(`Are you sure you want to upload ${forms.length} form(s) to the server?`)) {
+        // Send each form to the server
+        let uploadPromises = forms.map(form => {
+            return fetch('https://backend-8i2m.onrender.com/submit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(form)
+            });
+        });
+
+        // Wait for all uploads to complete
+        Promise.all(uploadPromises)
+            .then(responses => {
+                // Check if all responses are OK
+                const allSuccess = responses.every(response => response.ok);
+                if (allSuccess) {
+                    // Clear local storage if all uploads succeeded
+                    localStorage.removeItem('savedForms');
+                    updateFormsCount();
+                    alert("All forms uploaded successfully!");
+                } else {
+                    throw new Error("Some forms failed to upload");
+                }
+            })
+            .catch((error) => {
+                console.error("Error uploading forms:", error);
+                alert("There was an error uploading some forms. Please try again.");
+            });
     }
 }
 

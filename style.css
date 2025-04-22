@@ -110,6 +110,22 @@ button:hover {
     margin-top: 20px;
 }
 
+/* Upload Button */
+#upload-btn {
+    background-color: #4CAF50; /* Green background */
+    margin-top: 15px;
+    padding: 10px 15px;
+    width: auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+#upload-btn:hover {
+    background-color: #45a049; /* Darker green on hover */
+}
+
 /* Make the form inputs more compact on smaller screens */
 @media (max-width: 600px) {
     .container {
