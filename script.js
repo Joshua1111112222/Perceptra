@@ -221,6 +221,22 @@ function clearHistory() {
         .catch((error) => {
             console.error("Error clearing history:", error);
             alert("There was an error clearing the data.");
+            function nextStep() {
+                const usernameInput = document.getElementById("username");
+                const username = usernameInput.value.trim();
+            
+                if (username) {
+                    // Update the heading with the personalized message
+                    const heading = document.querySelector("h1");
+                    heading.innerText = `Welcome back, ${username}!`;
+            
+                    // Hide the username section and show the team section
+                    document.getElementById("username-section").classList.add("hidden");
+                    document.getElementById("team-section").classList.remove("hidden");
+                } else {
+                    alert("Please enter a username.");
+                }
+            }
         });
     }
 }

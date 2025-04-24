@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta name="apple-mobile-web-app-title" content="Perceptra">
-	<meta name="apple-mobile-web-app-capable" content="yes">
-	<meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <link rel="apple-touch-icon" href="\logo.png">
     <link rel="icon" href="\logo.png">
@@ -14,7 +14,11 @@
 </head>
 <body>
     <div class="container">
-        <h1>Perceptra</h1>
+        <!-- Static Perceptra heading (hidden initially) -->
+        <h1 id="static-heading" style="text-align: center; display: none;">Perceptra</h1>
+
+        <!-- Updated heading with a span for dynamic username -->
+        <h2 id="welcome-message" style="text-align: center;">Perceptra</h2>
 
         <!-- Username Section -->
         <div id="username-section">
@@ -89,6 +93,26 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        function nextStep() {
+            const usernameInput = document.getElementById("username");
+            const username = usernameInput.value.trim();
+
+            if (username) {
+                // Update the heading with the personalized message
+                const heading = document.getElementById("welcome-message");
+                heading.innerText = `Welcome back, ${username}`;
+
+                // Show the static "Perceptra" heading
+                document.getElementById("static-heading").style.display = "block";
+
+                // Hide the username section and show the team section
+                document.getElementById("username-section").classList.add("hidden");
+                document.getElementById("team-section").classList.remove("hidden");
+            } else {
+                alert("Please enter a username.");
+            }
+        }
+    </script>
 </body>
 </html>
