@@ -3,15 +3,18 @@ document.addEventListener('DOMContentLoaded', function() {
     updateFormsCount();
 });
 
+// List of allowed usernames
+const allowedUsernames = ["Joshua", "Alice", "Bob", "Charlie", "Diana"]; // Add the names of registered users here
+
 // Handle the "Next" button click
 function nextStep() {
-    var username = document.getElementById("username").value;
-    if (username) {
+    var username = document.getElementById("username").value.trim();
+    if (allowedUsernames.includes(username)) {
         localStorage.setItem("username", username);  // Save username to local storage
         document.getElementById("username-section").classList.add("hidden");
         document.getElementById("team-section").classList.remove("hidden");
     } else {
-        alert("Please enter a valid username.");
+        alert("Sorry, you are not currently registered on The Atomic Toasters Robotics team. To register, please contact Joshua or a mentor.");
     }
 }
 
@@ -221,22 +224,6 @@ function clearHistory() {
         .catch((error) => {
             console.error("Error clearing history:", error);
             alert("There was an error clearing the data.");
-            function nextStep() {
-                const usernameInput = document.getElementById("username");
-                const username = usernameInput.value.trim();
-            
-                if (username) {
-                    // Update the heading with the personalized message
-                    const heading = document.querySelector("h1");
-                    heading.innerText = `Welcome back, ${username}!`;
-            
-                    // Hide the username section and show the team section
-                    document.getElementById("username-section").classList.add("hidden");
-                    document.getElementById("team-section").classList.remove("hidden");
-                } else {
-                    alert("Please enter a username.");
-                }
-            }
         });
     }
 }

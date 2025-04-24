@@ -11,14 +11,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* Add this CSS to style the Perceptra heading */
+        .perceptra-heading {
+            color: #662d91; /* Replace with the desired color */
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-        <!-- Static Perceptra heading (hidden initially) -->
-        <h1 id="static-heading" style="text-align: center; display: none;">Perceptra</h1>
+        <!-- Static Perceptra heading (visible on login page) -->
+        <h1 id="static-heading" class="perceptra-heading" style="display: none;">Perceptra</h1>
 
         <!-- Updated heading with a span for dynamic username -->
-        <h2 id="welcome-message" style="text-align: center;">Perceptra</h2>
+        <h2 id="welcome-message" class="perceptra-heading">Perceptra</h2>
 
         <!-- Username Section -->
         <div id="username-section">
@@ -47,6 +54,8 @@
 
             <textarea id="notes" placeholder="Additional Notes"></textarea>
             <button onclick="submitData()">Submit</button>
+            <!-- Back Button -->
+            <button onclick="goBack()">Back</button>
         </div>
 
         <!-- Admin Login -->
@@ -56,7 +65,7 @@
 
         <div id="admin-section" class="hidden">
             <label for="admin-password">Enter Admin Password:</label>
-            <input type="password" id="admin-password" placeholder="Password">
+            <input type="password" id="admin-password" placeholder="1234567sorrysorry123456">
             <button onclick="accessAdmin()">Submit</button>
         </div>
 
@@ -94,11 +103,14 @@
     </div>
 
     <script>
+        // List of allowed usernames
+        const allowedUsernames = ["Joshua", "Alice", "Bob", "Charlie", "Diana"]; // Add the names of registered users here
+
         function nextStep() {
             const usernameInput = document.getElementById("username");
             const username = usernameInput.value.trim();
 
-            if (username) {
+            if (allowedUsernames.includes(username)) {
                 // Update the heading with the personalized message
                 const heading = document.getElementById("welcome-message");
                 heading.innerText = `Welcome back, ${username}`;
@@ -110,8 +122,21 @@
                 document.getElementById("username-section").classList.add("hidden");
                 document.getElementById("team-section").classList.remove("hidden");
             } else {
-                alert("Please enter a username.");
+                alert("Sorry, you are not currently registered on The Atomic Toasters Robotics team. To register, please contact Joshua or a mentor.");
             }
+        }
+
+        function goBack() {
+            // Hide the team section and show the username section
+            document.getElementById("team-section").classList.add("hidden");
+            document.getElementById("username-section").classList.remove("hidden");
+
+            // Hide the static "Perceptra" heading
+            document.getElementById("static-heading").style.display = "none";
+
+            // Reset the welcome message
+            const heading = document.getElementById("welcome-message");
+            heading.innerText = "Perceptra";
         }
     </script>
 </body>
