@@ -187,19 +187,6 @@ function nextStep() {
         function updateFormsCount() {
             document.getElementById('forms-count').textContent = getUnsyncedData().length;
         }
-
-        function nextStep() {
-            const username = document.getElementById("username").value.trim();
-            if (allowedUsernames.includes(username)) {
-                document.getElementById("welcome-message").innerText = `Welcome back, ${username}`;
-                document.getElementById("static-heading").style.display = "block";
-                document.getElementById("username-section").classList.add("hidden");
-                document.getElementById("team-section").classList.remove("hidden");
-            } else {
-                alert("Sorry, you are not currently registered. Please contact a mentor.");
-            }
-        }
-
         function goBack() {
             document.getElementById("team-section").classList.add("hidden");
             document.getElementById("username-section").classList.remove("hidden");
