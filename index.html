@@ -168,7 +168,7 @@ function nextStep() {
         function updateConnectionStatus() {
             const statusEl = document.getElementById('connection-status');
             statusEl.textContent = isOnline ? 'Online' : 'Offline';
-            statusEl.style.backgroundColor = isOnline ? '#662d91' : '#ff0000';
+            statusEl.style.backgroundColor = isOnline ? '#00FF00' : '#FF0000'; // Green for online, red for offline
             statusEl.classList.remove('hidden');
         }
 
