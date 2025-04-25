@@ -125,7 +125,7 @@
     </div>
 
     <script>
-           const allowedUsernames = ["Joshua The", "Caleb Wieland", "Parker Montgomery", "Nathan Hurd", "Evan Sylvester", "Bentley Kucmierz", "Loriel Achonduh"];
+           const allowedUsernames = ["Joshua The", "Caleb Wieland", "Parker Montgomery", "Nathan Hurd", "Evan Sylvester", "Bentley Kucmierz", "Loriel Achonduh",];
 
 function nextStep() {
     const username = document.getElementById("username").value.trim();
@@ -133,7 +133,6 @@ function nextStep() {
         alert("Please enter a username");
         return;
     }
-
     if (!allowedUsernames.includes(username)) {
         alert("Access denied. You are not an authorized user. Please contact Joshua.");
         // Clear the input and keep them on the username page
