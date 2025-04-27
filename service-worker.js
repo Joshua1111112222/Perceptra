@@ -4,6 +4,7 @@ const CACHE_EXPIRATION_DAYS = 365;
 const urlsToCache = [
   '/',
   '/index.html',
+  '/script.js',
   '/style.css',
   '/logo.png',
   '/manifest.json'
