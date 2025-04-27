@@ -1,6 +1,4 @@
-// service-worker.js
 const CACHE_NAME = 'perceptra-cache-v1';
-const CACHE_EXPIRATION_DAYS = 365;
 const urlsToCache = [
   '/',
   '/index.html',
@@ -10,65 +8,69 @@ const urlsToCache = [
   '/manifest.json'
 ];
 
+// Install event
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('Opened cache');
-        return cache.addAll(urlsToCache.map(url => new Request(url, {
-          headers: {
-            'Cache-Control': `max-age=${CACHE_EXPIRATION_DAYS * 24 * 60 * 60}`
-          }
-        })));
+        console.log('[Service Worker] Opened cache');
+        return cache.addAll(urlsToCache);
       })
   );
 });
 
+// Fetch event
 self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(event.request)
       .then(response => {
-        // Cache hit - return response
         if (response) {
-          return response;
+          return response; // Cache hit
         }
-        
-        // Clone the request
-        const fetchRequest = event.request.clone();
-        
-        return fetch(fetchRequest).then(
-          response => {
-            // Check if we received a valid response
-            if(!response || response.status !== 200 || response.type !== 'basic') {
-              return response;
+        return fetch(event.request.clone())
+          .then(networkResponse => {
+            if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
+              return networkResponse;
             }
-            
-            // Clone the response
-            const responseToCache = response.clone();
-            
+            const responseToCache = networkResponse.clone();
             caches.open(CACHE_NAME)
               .then(cache => {
                 cache.put(event.request, responseToCache);
               });
-              
-            return response;
-          }
-        );
+            return networkResponse;
+          });
       })
-    );
+  );
 });
 
+// Activate event
 self.addEventListener('activate', event => {
   const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(cacheName => {
-          if (cacheWhitelist.indexOf(cacheName) === -1) {
+          if (!cacheWhitelist.includes(cacheName)) {
+            console.log('[Service Worker] Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
         })
       );
     })
   );
+});
+
+// Background sync event
+self.addEventListener('sync', function(event) {
+  if (event.tag === 'keepalive-sync') {
+    event.waitUntil(
+      fetch('/ping.json') // A small dummy file to keep the service worker alive
+        .then(response => {
+          console.log('[Service Worker] Background Sync: keepalive successful');
+        })
+        .catch(error => {
+          console.error('[Service Worker] Background Sync failed:', error);
+        })
+    );
+  }
 });
