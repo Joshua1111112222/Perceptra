@@ -330,7 +330,7 @@
                 const dutyBlock = document.createElement("div");
                 dutyBlock.className = `duty-block ${isScouting ? "on-duty" : "off-duty"}`;
                 dutyBlock.innerHTML = `
-                    <div class="duty-title">${isScouting ? "ON DUTY" : "OFF DUTY"}</div>
+                    <div class="duty-title">${isScouting ? "ON" : "OFF"}</div>
                     <div class="duty-matches">Matches ${blockStart}-${blockEnd}</div>
                 `;
                 scheduleDisplay.appendChild(dutyBlock);
