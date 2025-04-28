@@ -8,46 +8,172 @@
     <meta http-equiv="X-UA-Compatible" content="ie=chrome">
     <link rel="icon" href="logo.png">
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#ffffff"> <!-- Android Chrome -->
+    <meta name="theme-color" content="#121212"> <!-- Dark theme color -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <link rel="stylesheet" href="style.css">
     <style>
-        .perceptra-heading {
-            color: #662d91;
-            text-align: center;
+        body {
+            background-color: #121212;
+            color: #e0e0e0;
+            font-family: Arial, sans-serif;
         }
 
         .container {
             max-height: 100vh;
             overflow-y: auto;
             padding: 20px;
+            background-color: #1e1e1e;
+        }
+
+        .perceptra-heading {
+            color: #bb86fc; /* Purple accent color */
+            text-align: center;
+        }
+
+        input, textarea, button, select {
+            background-color: #333;
+            color: #fff;
+            border: 1px solid #444;
+            padding: 8px;
+            margin: 5px 0;
+            border-radius: 4px;
+        }
+
+        button {
+            background-color: #6200ee;
+            color: white;
+            padding: 10px 15px;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+        }
+
+        button:hover {
+            background-color: #3700b3;
         }
 
         .clear-all-btn {
-            background-color: red;
+            background-color: #cf6679;
             color: white;
-            border: none;
-            padding: 10px 20px;
-            cursor: pointer;
-            font-size: 16px;
-            margin-top: 10px;
         }
 
         .clear-all-btn:hover {
-            background-color: darkred;
+            background-color: #b00020;
         }
-        
-        /* Added online status style - matches existing design */
+
         .connection-status {
             position: fixed;
             bottom: 10px;
             right: 10px;
             padding: 8px 15px;
-            background-color: #662d91;
-            color: white;
+            background-color: #bb86fc;
+            color: #000;
             border-radius: 4px;
             font-size: 14px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            border: 1px solid #444;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #332940;
+            color: #bb86fc;
+        }
+
+        tr:nth-child(even) {
+            background-color: #2a2a2a;
+        }
+
+        tr:hover {
+            background-color: #383838;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .ratings input {
+            width: 80px;
+            margin-right: 10px;
+        }
+
+        #notes {
+            width: 100%;
+            min-height: 100px;
+        }
+
+        /* Schedule styles */
+        .schedule-container {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #332940;
+            border-radius: 8px;
+        }
+
+        .team-assignment {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            color: #bb86fc;
+        }
+
+        .match-bubbles {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .match-bubble {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .on-duty {
+            background-color: #00c853;
+            color: #000;
+        }
+
+        .off-duty {
+            background-color: #616161;
+            color: #fff;
+        }
+
+        .schedule-explanation {
+            margin-top: 15px;
+            font-style: italic;
+            color: #9e9e9e;
+        }
+
+        /* Dark mode scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1e1e1e;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #444;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
         }
     </style>
 </head>
@@ -62,7 +188,10 @@
         <div id="username-section">
             <label for="username">Enter your Username:</label>
             <input type="text" id="username" placeholder="Your Username">
-            <button onclick="nextStep()">Next</button>
+            <button onclick="checkUsername()">Next</button>
+            
+            <!-- Schedule will be inserted here after username check -->
+            <div id="schedule-display" class="hidden schedule-container"></div>
         </div>
 
         <div id="team-section" class="hidden">
@@ -84,6 +213,7 @@
             <button onclick="goBack()">Back</button>
         </div>
 
+        <!-- Rest of your HTML remains exactly the same -->
         <div id="admin-login">
             <button onclick="showAdmin()">Admin</button>
         </div>
@@ -125,36 +255,94 @@
     </div>
 
     <script>
-           const allowedUsernames = ["Joshua The", "Caleb Wieland", "Parker Montgomery", "Nathan Hurd", "Evan Sylvester", "Bentley Kucmierz", "Loriel Achonduh","Kaila Petrut","Aiden Dejesus"];
+        // Team assignments
+        const scoutingTeams = {
+            "Team 1": ["Joshua The", "Caleb Wieland", "Parker Montgomery", "Loriel Achonduh"],
+            "Team 2": ["Nathan Hurd", "Bentley Kucmierz", "Evan Sylvester", "Kaila Petrut", "Aiden Dejesus"]
+        };
 
-function nextStep() {
-    const username = document.getElementById("username").value.trim();
-    if (!username) {
-        alert("Please enter a username");
-        return;
-    }
-    if (!allowedUsernames.includes(username)) {
-        alert("Sorry, you are not currently registered on The Atomic Toasters Robotics Team. To Register, Please contact Joshua.");
-        // Clear the input and keep them on the username page
-        document.getElementById("username").value = "";
-        return;
-    }
+        const allowedUsernames = [...scoutingTeams["Team 1"], ...scoutingTeams["Team 2"]];
 
-    // Only proceed if username is valid
-    document.getElementById("welcome-message").innerText = `Welcome back, ${username}`;
-    document.getElementById("static-heading").style.display = "block";
-    document.getElementById("username-section").classList.add("hidden");
-    document.getElementById("team-section").classList.remove("hidden");
-}
+        function checkUsername() {
+            const username = document.getElementById("username").value.trim();
+            if (!username) {
+                alert("Please enter a username");
+                return;
+            }
+            
+            if (!allowedUsernames.includes(username)) {
+                alert("Sorry, you are not currently registered on The Atomic Toasters Robotics Team. To Register, Please contact Joshua.");
+                document.getElementById("username").value = "";
+                return;
+            }
 
+            // Show schedule before proceeding
+            showUserSchedule(username);
+        }
+
+        function showUserSchedule(username) {
+            const scheduleDisplay = document.getElementById("schedule-display");
+            scheduleDisplay.innerHTML = '';
+            scheduleDisplay.classList.remove("hidden");
+            
+            // Determine which team the user is on
+            let userTeam = "Team 1";
+            if (scoutingTeams["Team 2"].includes(username)) {
+                userTeam = "Team 2";
+            }
+            
+            // Create schedule display
+            const teamAssignment = document.createElement("div");
+            teamAssignment.className = "team-assignment";
+            teamAssignment.textContent = `You are on ${userTeam}`;
+            scheduleDisplay.appendChild(teamAssignment);
+            
+            // Create match bubbles (5 on, 5 off pattern)
+            const matchBubbles = document.createElement("div");
+            matchBubbles.className = "match-bubbles";
+            
+            for (let i = 1; i <= 10; i++) {
+                const bubble = document.createElement("div");
+                bubble.className = "match-bubble";
+                bubble.textContent = i;
+                
+                // Team 1 scouts odd cycles (1-5, 11-15, etc.)
+                // Team 2 scouts even cycles (6-10, 16-20, etc.)
+                const isScouting = (userTeam === "Team 1" && i <= 5) || (userTeam === "Team 2" && i > 5);
+                
+                bubble.classList.add(isScouting ? "on-duty" : "off-duty");
+                matchBubbles.appendChild(bubble);
+            }
+            
+            scheduleDisplay.appendChild(matchBubbles);
+            
+            // Add explanation
+            const explanation = document.createElement("div");
+            explanation.className = "schedule-explanation";
+            explanation.textContent = `Green bubbles show when you're scouting (${userTeam === "Team 1" ? "matches 1-5" : "matches 6-10"}). Gray bubbles are your rest matches.`;
+            scheduleDisplay.appendChild(explanation);
+            
+            // Add continue button
+            const continueButton = document.createElement("button");
+            continueButton.textContent = "Continue to Scouting";
+            continueButton.onclick = () => proceedToScouting(username);
+            scheduleDisplay.appendChild(continueButton);
+        }
+
+        function proceedToScouting(username) {
+            document.getElementById("welcome-message").innerText = `Welcome back, ${username}`;
+            document.getElementById("static-heading").style.display = "block";
+            document.getElementById("username-section").classList.add("hidden");
+            document.getElementById("team-section").classList.remove("hidden");
+        }
+
+        // Rest of your JavaScript remains exactly the same
         const LOCAL_STORAGE_KEY = "perceptra_unsynced_data";
         const BACKEND_URL = "https://backend-8i2m.onrender.com";
         
-        // Track connection status
         let isOnline = navigator.onLine;
         updateConnectionStatus();
         
-        // Monitor connection changes
         window.addEventListener('online', () => {
             isOnline = true;
             updateConnectionStatus();
@@ -167,7 +355,7 @@ function nextStep() {
         function updateConnectionStatus() {
             const statusEl = document.getElementById('connection-status');
             statusEl.textContent = isOnline ? 'Online' : 'Offline';
-            statusEl.style.backgroundColor = isOnline ? '#00FF00' : '#FF0000'; // Green for online, red for offline
+            statusEl.style.backgroundColor = isOnline ? '#00FF00' : '#FF0000';
             statusEl.classList.remove('hidden');
         }
 
@@ -186,11 +374,13 @@ function nextStep() {
         function updateFormsCount() {
             document.getElementById('forms-count').textContent = getUnsyncedData().length;
         }
+
         function goBack() {
             document.getElementById("team-section").classList.add("hidden");
             document.getElementById("username-section").classList.remove("hidden");
             document.getElementById("static-heading").style.display = "none";
             document.getElementById("welcome-message").innerText = "Perceptra";
+            document.getElementById("schedule-display").classList.add("hidden");
         }
 
         function showAdmin() {
@@ -258,7 +448,6 @@ function nextStep() {
                 return;
             }
 
-            // Upload each item one by one
             uploadNextItem(0);
         }
 
@@ -284,13 +473,11 @@ function nextStep() {
             .then(response => {
                 if (!response.ok) throw new Error('Upload failed');
                 
-                // Remove successfully uploaded item
                 const updatedData = getUnsyncedData();
                 updatedData.splice(index, 1);
                 localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedData));
                 updateFormsCount();
                 
-                // Upload next item
                 uploadNextItem(index);
             })
             .catch(error => {
@@ -324,7 +511,7 @@ function nextStep() {
                         const deleteCell = row.insertCell(12);
                         const deleteButton = document.createElement("button");
                         deleteButton.innerText = "Delete";
-                        deleteButton.style.backgroundColor = "red";
+                        deleteButton.style.backgroundColor = "#cf6679";
                         deleteButton.style.color = "white";
                         deleteButton.style.border = "none";
                         deleteButton.style.padding = "5px 10px";
@@ -374,10 +561,8 @@ function nextStep() {
             }
         }
 
-        // Initialize forms count
         updateFormsCount();
 
-        // Service Worker Registration for 1-year caching
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function() {
                 navigator.serviceWorker.register('service-worker.js')
