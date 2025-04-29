@@ -214,8 +214,8 @@
         <div id="connection-status" class="connection-status hidden"></div>
 
         <div id="username-section">
-            <label for="username">Enter your Username:</label>
-            <input type="text" id="username" placeholder="Your Username">
+            <label for="username">Enter your Full Name:</label>
+            <input type="text" id="username" placeholder="Your Fullname">
             <button onclick="checkUsername()">Next</button>
             
             <div id="schedule-display" class="hidden schedule-container"></div>
@@ -299,7 +299,7 @@
     <script>
         // Team assignments
         const scoutingTeams = {
-            "Team 1": ["Joshua The", "Caleb Wieland", "Parker Montgomery", "Loriel Achonduh"],
+            "Team 1": ["Joshua The", "Caleb Wieland", "Parker Montgomery", "Loriel Achonduh","Steve Freece", "Chloe Malcolm","Jessica Wash"],
             "Team 2": ["Nathan Hurd", "Bentley Kucmierz", "Evan Sylvester", "Kaila Petrut", "Aiden Dejesus"]
         };
 
@@ -353,7 +353,7 @@
             
             const explanation = document.createElement("div");
             explanation.className = "schedule-explanation";
-            explanation.textContent = `You alternate between 5 matches scouting and 5 matches break`;
+            explanation.textContent = `You have 5 matches of scouting then 5 matches on break`;
             scheduleDisplay.appendChild(explanation);
             
             const continueButton = document.createElement("button");
