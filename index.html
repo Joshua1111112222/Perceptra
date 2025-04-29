@@ -222,6 +222,19 @@
         </div>
 
         <div id="team-section" class="hidden">
+            <label for="match-number">Match Number:</label>
+            <input type="number" id="match-number" placeholder="Match Number">
+            
+            <label for="event">Event:</label>
+            <select id="event">
+                <option value="">Select Event</option>
+                <option value="Kickoff">Kickoff</option>
+                <option value="Qualifier">Qualifier</option>
+                <option value="Championship">Championship</option>
+                <option value="Practice">Practice</option>
+                <option value="Other">Other</option>
+            </select>
+            
             <label for="team-name">Enter Team Name:</label>
             <input type="text" id="team-name" placeholder="Team Name">
             <label for="team-number">Enter Team Number:</label>
@@ -259,6 +272,8 @@
             <table id="rankings-table">
                 <thead>
                     <tr>
+                        <th>Match #</th>
+                        <th>Event</th>
                         <th>Team Name</th>
                         <th>Team Number</th>
                         <th>Avg Score</th>
@@ -355,7 +370,7 @@
         }
 
         const LOCAL_STORAGE_KEY = "perceptra_unsynced_data";
-        const BACKEND_URL = "https://perceptra-backend.onrender.com";  // Updated backend URL
+        const BACKEND_URL = "https://perceptra-backend2.onrender.com";  // Updated backend URL
         
         let isOnline = navigator.onLine;
         updateConnectionStatus();
@@ -424,6 +439,8 @@
         function submitData() {
             const formData = {
                 username: document.getElementById("username").value.trim(),
+                matchNumber: document.getElementById("match-number").value.trim(),
+                event: document.getElementById("event").value,
                 teamName: document.getElementById("team-name").value.trim(),
                 teamNumber: document.getElementById("team-number").value.trim(),
                 defense: document.getElementById("defense").value,
@@ -436,8 +453,8 @@
                 timestamp: new Date().toISOString()
             };
 
-            if (!formData.teamName || !formData.teamNumber) {
-                alert("Please enter team name and number");
+            if (!formData.teamName || !formData.teamNumber || !formData.matchNumber || !formData.event) {
+                alert("Please enter all required fields (Team Name, Team Number, Match Number, and Event)");
                 return;
             }
 
@@ -447,6 +464,8 @@
             // Clear form
             document.getElementById("team-name").value = "";
             document.getElementById("team-number").value = "";
+            document.getElementById("match-number").value = "";
+            document.getElementById("event").value = "";
             document.getElementById("defense").value = "";
             document.getElementById("strategy").value = "";
             document.getElementById("effectiveness").value = "";
@@ -516,27 +535,29 @@
                     rankingsBody.innerHTML = "";
                     data.forEach((entry) => {
                         const row = rankingsBody.insertRow();
-                        row.insertCell(0).innerText = entry.teamName;
-                        row.insertCell(1).innerText = entry.teamNumber;
-                        row.insertCell(2).innerText = entry.avgScore;
-                        row.insertCell(3).innerText = entry.highestScore;
-                        row.insertCell(4).innerText = entry.username;
-                        row.insertCell(5).innerText = entry.defense;
-                        row.insertCell(6).innerText = entry.strategy;
-                        row.insertCell(7).innerText = entry.effectiveness;
-                        row.insertCell(8).innerText = entry.driveSkill;
-                        row.insertCell(9).innerText = entry.scoring;
-                        row.insertCell(10).innerText = entry.consistency;
-                        row.insertCell(11).innerText = entry.notes;
+                        row.insertCell(0).innerText = entry.matchNumber || 'N/A';
+                        row.insertCell(1).innerText = entry.event || 'N/A';
+                        row.insertCell(2).innerText = entry.teamName;
+                        row.insertCell(3).innerText = entry.teamNumber;
+                        row.insertCell(4).innerText = entry.avgScore;
+                        row.insertCell(5).innerText = entry.highestScore;
+                        row.insertCell(6).innerText = entry.username;
+                        row.insertCell(7).innerText = entry.defense;
+                        row.insertCell(8).innerText = entry.strategy;
+                        row.insertCell(9).innerText = entry.effectiveness;
+                        row.insertCell(10).innerText = entry.driveSkill;
+                        row.insertCell(11).innerText = entry.scoring;
+                        row.insertCell(12).innerText = entry.consistency;
+                        row.insertCell(13).innerText = entry.notes;
                         
-                        // Add the saved timestamp (new cell at position 12)
+                        // Add the saved timestamp (new cell at position 14)
                         const savedDate = entry._savedAt ? 
                             new Date(entry._savedAt).toLocaleString() : 
                             'Unknown';
-                        row.insertCell(12).innerText = savedDate;
+                        row.insertCell(14).innerText = savedDate;
 
-                        // Move delete button to cell 13
-                        const deleteCell = row.insertCell(13);
+                        // Move delete button to cell 15
+                        const deleteCell = row.insertCell(15);
                         const deleteButton = document.createElement("button");
                         deleteButton.innerText = "Delete";
                         deleteButton.style.backgroundColor = "#cf6679";
