@@ -207,6 +207,40 @@
     </style>
 </head>
 <body>
+    <!-- Add this button and the hidden text container to the login page -->
+<div id="how-to-use-section">
+    <button id="how-to-use-btn" onclick="toggleHowToUse()">How to Use</button>
+    <div id="how-to-use-text" class="hidden">
+        <!-- Add your instructional text here -->
+        <p>Instructions will go here...</p>
+    </div>
+</div>
+
+<script>
+    function toggleHowToUse() {
+        const howToUseText = document.getElementById("how-to-use-text");
+        howToUseText.classList.toggle("hidden");
+    }
+</script>
+
+<style>
+    #how-to-use-section {
+        margin-top: 20px;
+        text-align: center;
+    }
+
+    #how-to-use-text {
+        margin-top: 10px;
+        background-color: #1e1e1e;
+        padding: 10px;
+        border-radius: 4px;
+        color: #e0e0e0;
+    }
+
+    .hidden {
+        display: none;
+    }
+</style>
     <div class="container">
         <h1 id="static-heading" class="perceptra-heading" style="display: none;">Perceptra</h1>
         <h2 id="welcome-message" class="perceptra-heading">Perceptra</h2>
