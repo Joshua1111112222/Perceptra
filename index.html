@@ -208,20 +208,15 @@
 </head>
 <body>
     <!-- Add this button and the hidden text container to the login page -->
-<div id="how-to-use-section">
-    <button id="how-to-use-btn" onclick="toggleHowToUse()">How to Use</button>
-    <div id="how-to-use-text" class="hidden">
-        <!-- Add your instructional text here -->
-        <p>Things and stuffs</div></p>
+    <div id="how-to-use-section">
+        <button id="how-to-use-btn" onclick="goToHowToUse()">How to Use</button>
     </div>
-</div>
-
-<script>
-    function toggleHowToUse() {
-        const howToUseText = document.getElementById("how-to-use-text");
-        howToUseText.classList.toggle("hidden");
-    }
-</script>
+    
+    <script>
+        function goToHowToUse() {
+            window.location.href = "how-to-use.html";
+        }
+    </script>
 
 <style>
     #how-to-use-section {
