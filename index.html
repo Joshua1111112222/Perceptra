@@ -492,6 +492,7 @@
 
             saveToLocalStorage(formData);
             alert("Data saved locally!");
+            console.log("Data saved locally:", formData);
 
             // Clear form
             document.getElementById("team-name").value = "";
@@ -529,6 +530,7 @@
             if (index >= unsyncedData.length) {
                 alert("All data uploaded successfully!");
                 localStorage.removeItem(LOCAL_STORAGE_KEY);
+                console.log("All data uploaded successfully");
                 updateFormsCount();
                 return;
             }
