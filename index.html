@@ -556,6 +556,7 @@
             })
             .catch(error => {
                 console.error('Error uploading item:', error);
+                console.log("Failed to upload item:", dataItem);
                 alert(`Failed to upload item ${index + 1}. Trying next item...`);
                 uploadNextItem(index + 1);
             });
