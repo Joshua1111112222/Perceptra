@@ -196,6 +196,38 @@
             background: #555;
         }
 
+        /* Prediction styles */
+        .prediction-container {
+            background-color: #332940;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .prediction-result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .winning-team {
+            background-color: #00c853;
+            color: #000;
+        }
+
+        .losing-team {
+            background-color: #b00020;
+            color: #fff;
+        }
+
+        .close-prediction {
+            background-color: #cf6679;
+            margin-top: 10px;
+        }
+
         @media (max-width: 600px) {
             .container {
                 padding: 10px;
@@ -208,7 +240,6 @@
     </style>
 </head>
 <body>
-    <!-- Add this button and the hidden text container to the login page -->
     <div id="how-to-use-section">
         <button id="how-to-use-btn" onclick="goToHowToUse()">How to Use</button>
     </div>
@@ -249,6 +280,30 @@
             <button onclick="checkUsername()">Next</button>
             
             <div id="schedule-display" class="hidden schedule-container"></div>
+            
+            <!-- Add Match Prediction Button -->
+            <button id="predict-match-btn" onclick="showPredictionForm()">Predict Match Outcome</button>
+            
+            <!-- Prediction Form (initially hidden) -->
+            <div id="prediction-form" class="hidden prediction-container">
+                <h3>Match Prediction</h3>
+                <label for="red-team1">Red Alliance Team 1 Number:</label>
+                <input type="number" id="red-team1" placeholder="Team Number">
+                
+                <label for="red-team2">Red Alliance Team 2 Number:</label>
+                <input type="number" id="red-team2" placeholder="Team Number">
+                
+                <label for="blue-team1">Blue Alliance Team 1 Number:</label>
+                <input type="number" id="blue-team1" placeholder="Team Number">
+                
+                <label for="blue-team2">Blue Alliance Team 2 Number:</label>
+                <input type="number" id="blue-team2" placeholder="Team Number">
+                
+                <button onclick="calculatePrediction()">Calculate Prediction</button>
+                <button class="close-prediction" onclick="hidePredictionForm()">Close</button>
+                
+                <div id="prediction-result" class="hidden prediction-result"></div>
+            </div>
         </div>
 
         <div id="team-section" class="hidden">
@@ -339,20 +394,20 @@
         const allowedUsernames = [...scoutingTeams["Team 1"], ...scoutingTeams["Team 2"]];
 
         function checkUsername() {
-    const username = document.getElementById("username").value.trim();
-    if (!username) {
-        alert("Please enter a username");
-        return;
-    }
-    
-    if (!allowedUsernames.includes(username)) {
-        alert(`${username} was not found in the database. Please contact Joshua or a mentor if you cannot get in.`);
-        document.getElementById("username").value = "";
-        return;
-    }
+            const username = document.getElementById("username").value.trim();
+            if (!username) {
+                alert("Please enter a username");
+                return;
+            }
+            
+            if (!allowedUsernames.includes(username)) {
+                alert(`${username} was not found in the database. Please contact Joshua or a mentor if you cannot get in.`);
+                document.getElementById("username").value = "";
+                return;
+            }
 
-    showUserSchedule(username);
-}
+            showUserSchedule(username);
+        }
 
         function showUserSchedule(username) {
             const scheduleDisplay = document.getElementById("schedule-display");
@@ -644,6 +699,87 @@
                     alert('Failed to clear entries. Please try again.');
                 });
             }
+        }
+
+        // Match Prediction Functions
+        function showPredictionForm() {
+            document.getElementById("prediction-form").classList.remove("hidden");
+            document.getElementById("predict-match-btn").classList.add("hidden");
+        }
+
+        function hidePredictionForm() {
+            document.getElementById("prediction-form").classList.add("hidden");
+            document.getElementById("predict-match-btn").classList.remove("hidden");
+            document.getElementById("prediction-result").classList.add("hidden");
+        }
+
+        function calculatePrediction() {
+            const redTeam1 = document.getElementById("red-team1").value.trim();
+            const redTeam2 = document.getElementById("red-team2").value.trim();
+            const blueTeam1 = document.getElementById("blue-team1").value.trim();
+            const blueTeam2 = document.getElementById("blue-team2").value.trim();
+            
+            if (!redTeam1 || !blueTeam1) {
+                alert("Please enter at least one team for each alliance");
+                return;
+            }
+            
+            // Get all team data
+            fetch(`${BACKEND_URL}/rankings`)
+                .then(response => response.json())
+                .then(data => {
+                    // Find each team's data
+                    const red1Data = data.find(team => team.teamNumber == redTeam1);
+                    const red2Data = data.find(team => team.teamNumber == redTeam2);
+                    const blue1Data = data.find(team => team.teamNumber == blueTeam1);
+                    const blue2Data = data.find(team => team.teamNumber == blueTeam2);
+                    
+                    // Calculate average scores for each alliance
+                    const redScores = [];
+                    const blueScores = [];
+                    
+                    if (red1Data) redScores.push(parseFloat(red1Data.avgScore) || 0);
+                    if (red2Data) redScores.push(parseFloat(red2Data.avgScore) || 0);
+                    if (blue1Data) blueScores.push(parseFloat(blue1Data.avgScore) || 0);
+                    if (blue2Data) blueScores.push(parseFloat(blue2Data.avgScore) || 0);
+                    
+                    // If no data for a team, use default score (1)
+                    if (redScores.length === 0) redScores.push(1);
+                    if (blueScores.length === 0) blueScores.push(1);
+                    
+                    const redAvg = redScores.reduce((a, b) => a + b, 0) / redScores.length;
+                    const blueAvg = blueScores.reduce((a, b) => a + b, 0) / blueScores.length;
+                    
+                    // Calculate win probability (simple logistic function)
+                    const total = redAvg + blueAvg;
+                    const redWinProb = Math.round((redAvg / total) * 100);
+                    const blueWinProb = 100 - redWinProb;
+                    
+                    // Display results
+                    const resultEl = document.getElementById("prediction-result");
+                    resultEl.innerHTML = '';
+                    resultEl.classList.remove("hidden");
+                    
+                    if (redAvg > blueAvg) {
+                        resultEl.innerHTML = `
+                            <div class="winning-team">RED Alliance predicted to win (${redWinProb}% chance)</div>
+                            <div class="losing-team">BLUE Alliance predicted to lose (${blueWinProb}% chance)</div>
+                            <div>Red Alliance Average Score: ${redAvg.toFixed(1)}</div>
+                            <div>Blue Alliance Average Score: ${blueAvg.toFixed(1)}</div>
+                        `;
+                    } else {
+                        resultEl.innerHTML = `
+                            <div class="winning-team">BLUE Alliance predicted to win (${blueWinProb}% chance)</div>
+                            <div class="losing-team">RED Alliance predicted to lose (${redWinProb}% chance)</div>
+                            <div>Blue Alliance Average Score: ${blueAvg.toFixed(1)}</div>
+                            <div>Red Alliance Average Score: ${redAvg.toFixed(1)}</div>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    console.error("Error fetching team data:", error);
+                    alert("Error calculating prediction. Please try again.");
+                });
         }
 
         updateFormsCount();
