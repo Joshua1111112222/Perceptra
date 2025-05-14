@@ -346,7 +346,7 @@
             }
             
             if (!allowedUsernames.includes(username)) {
-                alert("User not found in database. Please contact Joshua or a mentor if you cannot get in.");
+                alert("{$username} was not found in database. Please contact Joshua or a mentor if you cannot get in.");
                 document.getElementById("username").value = "";
                 return;
             }
