@@ -339,20 +339,20 @@
         const allowedUsernames = [...scoutingTeams["Team 1"], ...scoutingTeams["Team 2"]];
 
         function checkUsername() {
-            const username = document.getElementById("username").value.trim();
-            if (!username) {
-                alert("Please enter a username");
-                return;
-            }
-            
-            if (!allowedUsernames.includes(username)) {
-                alert("{$username} was not found in database. Please contact Joshua or a mentor if you cannot get in.");
-                document.getElementById("username").value = "";
-                return;
-            }
+    const username = document.getElementById("username").value.trim();
+    if (!username) {
+        alert("Please enter a username");
+        return;
+    }
+    
+    if (!allowedUsernames.includes(username)) {
+        alert(`${username} was not found in the database. Please contact Joshua or a mentor if you cannot get in.`);
+        document.getElementById("username").value = "";
+        return;
+    }
 
-            showUserSchedule(username);
-        }
+    showUserSchedule(username);
+}
 
         function showUserSchedule(username) {
             const scheduleDisplay = document.getElementById("schedule-display");
