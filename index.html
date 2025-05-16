@@ -305,6 +305,167 @@
                 <div id="prediction-result" class="hidden prediction-result"></div>
             </div>
         </div>
+        <!-- ===== ADD THIS SECTION RIGHT BEFORE THE CLOSING </body> TAG ===== -->
+<script>
+    // Team Analysis Functions
+    function showTeamAnalysis() {
+      document.getElementById("team-analysis-form").classList.remove("hidden");
+    }
+    
+    function hideTeamAnalysis() {
+      document.getElementById("team-analysis-form").classList.add("hidden");
+      document.getElementById("team-analysis-result").classList.add("hidden");
+    }
+    
+    async function generateTeamAnalysis() {
+      const teamNumber = document.getElementById("analysis-team-number").value;
+      if (!teamNumber) {
+        alert("Please enter a team number");
+        return;
+      }
+    
+      const resultDiv = document.getElementById("team-analysis-result");
+      resultDiv.innerHTML = `<p>Analyzing data... <div class="loader"></div></p>`;
+      resultDiv.classList.remove("hidden");
+    
+      try {
+        // Get team data from backend
+        const response = await fetch(`${BACKEND_URL}/team-data?team=${teamNumber}`);
+        const teamData = await response.json();
+    
+        if (!teamData || teamData.length === 0) {
+          resultDiv.innerHTML = "<p>No scouting data found for team " + teamNumber + "</p>";
+          return;
+        }
+    
+        // Process data and generate report
+        const report = await generateAIScoutingReport(teamData);
+        
+        // Display results
+        document.getElementById("strengths-weaknesses").innerHTML = 
+          `<h5>Strengths & Weaknesses</h5><p>${report.summary}</p>`;
+        
+        document.getElementById("performance-prediction").innerHTML = 
+          `<h5>Performance Prediction</h5><p>${report.prediction}</p>`;
+        
+        document.getElementById("key-statistics").innerHTML = 
+          `<h5>Key Statistics</h5><ul>
+            <li>Average Score: ${report.avgScore}</li>
+            <li>Best Match: ${report.bestMatch} (${report.highestScore} pts)</li>
+            <li>Consistency: ${report.consistency}/10</li>
+            <li>Total Matches Scouted: ${report.matchCount}</li>
+          </ul>`;
+    
+      } catch (error) {
+        console.error("Analysis error:", error);
+        resultDiv.innerHTML = "<p>Error generating report. Please try again later.</p>";
+      }
+    }
+    
+    async function generateAIScoutingReport(teamData) {
+      // Calculate core metrics
+      const scores = teamData.map(m => parseFloat(m.avgScore) || 0);
+      const avgScore = (scores.reduce((a,b) => a + b, 0) / scores.length).toFixed(1);
+      const highestScore = Math.max(...scores);
+      const bestMatch = teamData.find(m => parseFloat(m.avgScore) === highestScore).matchNumber || "N/A";
+      
+      // Analyze ratings (1-10 scale)
+      const categories = {
+        defense: teamData.map(m => parseInt(m.defense) || 5),
+        strategy: teamData.map(m => parseInt(m.strategy) || 5),
+        effectiveness: teamData.map(m => parseInt(m.effectiveness) || 5),
+        driveSkill: teamData.map(m => parseInt(m.driveSkill) || 5),
+        scoring: teamData.map(m => parseInt(m.scoring) || 5),
+        consistency: teamData.map(m => parseInt(m.consistency) || 5)
+      };
+    
+      // Determine strengths (>7 avg) and weaknesses (<4 avg)
+      const strengths = [];
+      const weaknesses = [];
+      
+      Object.entries(categories).forEach(([name, values]) => {
+        const avg = values.reduce((a,b) => a + b, 0) / values.length;
+        if (avg > 7) strengths.push(name);
+        if (avg < 4) weaknesses.push(name);
+      });
+    
+      // Generate natural language report
+      const summary = `This team ${strengths.length ? 'excels at ' + strengths.join(', ') : 'has no standout strengths'}. ` +
+                      `${weaknesses.length ? 'They struggle with ' + weaknesses.join(', ') : 'No significant weaknesses observed.'}`;
+      
+      const prediction = `Expected performance: ${avgScore > 50 ? 'Strong contender' : 'Mid-tier team'} ` +
+                        `with ${highestScore > 60 ? 'peak performance potential' : 'limited high-score capability'}. ` +
+                        `${categories.consistency.reduce((a,b) => a + b, 0)/categories.consistency.length > 7 ? 
+                          'Very reliable performance.' : 'Inconsistent between matches.'}`;
+    
+      return {
+        summary,
+        prediction,
+        avgScore,
+        highestScore,
+        bestMatch,
+        consistency: (categories.consistency.reduce((a,b) => a + b, 0) / categories.consistency.length).toFixed(1),
+        matchCount: teamData.length
+      };
+    }
+    </script>
+    
+    <!-- ===== ADD THIS CSS IN YOUR <style> SECTION ===== -->
+    <style>
+    /* Team Analysis Styles */
+    #team-analysis-form {
+      margin-top: 20px;
+      background-color: #332940;
+    }
+    
+    #team-analysis-result {
+      background-color: #1e1e1e;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 15px;
+    }
+    
+    #team-analysis-result h5 {
+      color: #bb86fc;
+      margin-bottom: 5px;
+    }
+    
+    .loader {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #bb86fc;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+      vertical-align: middle;
+      margin-left: 10px;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    </style>
+    
+    <!-- ===== ADD THIS HTML WHERE YOU WANT THE BUTTON ===== -->
+    <div id="team-analysis-section" style="margin-top: 20px;">
+      <button onclick="showTeamAnalysis()" style="background-color: #03DAC6; color: #000;">Generate AI Team Report</button>
+      <div id="team-analysis-form" class="hidden" style="padding: 15px; border-radius: 8px; margin-top: 10px;">
+        <h3>AI Team Analysis</h3>
+        <label for="analysis-team-number">Team Number:</label>
+        <input type="number" id="analysis-team-number" placeholder="Enter team number">
+        <button onclick="generateTeamAnalysis()">Generate Report</button>
+        <button class="close-prediction" onclick="hideTeamAnalysis()">Close</button>
+        <div id="team-analysis-result" class="hidden">
+          <h4>AI Scouting Report</h4>
+          <div id="strengths-weaknesses"></div>
+          <div id="performance-prediction"></div>
+          <div id="key-statistics"></div>
+        </div>
+      </div>
+    </div>
+  
 
         <div id="team-section" class="hidden">
             <label for="match-number">Match Number:</label>
