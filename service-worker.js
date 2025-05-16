@@ -1,11 +1,13 @@
 const CACHE_NAME = 'perceptra-cache-v1';
 const urlsToCache = [
-  '/',
+  '/how-to-use.html',
   '/index.html',
   '/script.js',
   '/style.css',
-  '/logo.png',
-  '/manifest.json'
+  '/logo1.png',
+  '/logo2.png',
+  '/manifest1.json',
+  '/manifest2.json'
 ];
 
 // Install event
