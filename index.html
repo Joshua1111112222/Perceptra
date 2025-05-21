@@ -350,6 +350,12 @@
             <input type="password" id="admin-password" placeholder="Enter Admin Password">
             <button onclick="accessAdmin()">Submit</button>
         </div>
+        
+        <div id="ai-insights-section">
+            <h3>AI-Powered Insights</h3>
+            <button onclick="generateAIInsights()">Generate Insights</button>
+            <div id="ai-insights-result" class="hidden prediction-result"></div>
+        </div>
 
         <div id="upload-section">
             <button id="upload-btn" onclick="uploadData()">Upload (<span id="forms-count">0</span>)</button>
@@ -662,6 +668,61 @@
                 })
                 .catch(error => console.error("Error fetching rankings:", error));
         }
+        
+        function generateAIInsights() {
+    const insightsResult = document.getElementById("ai-insights-result");
+    const teamNumber = prompt("Enter the team number to get detailed information:");
+
+    if (!teamNumber) {
+        insightsResult.innerHTML = "No team number entered.";
+        insightsResult.classList.remove("hidden");
+        return;
+    }
+
+    insightsResult.innerHTML = `Fetching detailed information for team #${teamNumber}...`;
+    insightsResult.classList.remove("hidden");
+
+    // Fetch team data from the backend
+    fetch(`${BACKEND_URL}/rankings`)
+        .then(response => response.json())
+        .then(data => {
+            if (!data || data.length === 0) {
+                insightsResult.innerHTML = "No data available to generate insights.";
+                return;
+            }
+
+            // Find the team by the entered team number
+            const teamData = data.find(team => team.teamNumber == teamNumber);
+
+            if (!teamData) {
+                insightsResult.innerHTML = `No information found for team #${teamNumber}.`;
+                return;
+            }
+
+            // Generate very detailed information about the team
+            const detailedInfo = `
+                <h4>Detailed Information for Team #${teamNumber}</h4>
+                <p><strong>Team Name:</strong> ${teamData.teamName || "N/A"}</p>
+                <p><strong>Average Score:</strong> ${teamData.avgScore || "N/A"}</p>
+                <p><strong>Highest Score:</strong> ${teamData.highestScore || "N/A"}</p>
+                <p><strong>Defense Rating:</strong> ${teamData.defense || "N/A"}</p>
+                <p><strong>Strategy Rating:</strong> ${teamData.strategy || "N/A"}</p>
+                <p><strong>Effectiveness Rating:</strong> ${teamData.effectiveness || "N/A"}</p>
+                <p><strong>Drive Skill Rating:</strong> ${teamData.driveSkill || "N/A"}</p>
+                <p><strong>Scoring Rating:</strong> ${teamData.scoring || "N/A"}</p>
+                <p><strong>Consistency Rating:</strong> ${teamData.consistency || "N/A"}</p>
+                <p><strong>Notes:</strong> ${teamData.notes || "No additional notes available."}</p>
+                <p><strong>Submitted By:</strong> ${teamData.username || "Unknown"}</p>
+                <p><strong>Last Updated:</strong> ${teamData._savedAt ? new Date(teamData._savedAt).toLocaleString() : "Unknown"}</p>
+            `;
+
+            insightsResult.innerHTML = detailedInfo;
+        })
+        .catch(error => {
+            console.error("Error fetching data for insights:", error);
+            insightsResult.innerHTML = "Failed to fetch team information. Please try again.";
+        });
+}
 
         function deleteEntry(teamNumber) {
             if (confirm("Are you sure you want to delete this entry?")) {
