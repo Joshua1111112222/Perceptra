@@ -671,18 +671,24 @@
         
         function generateAIInsights() {
     const insightsResult = document.getElementById("ai-insights-result");
-    const teamNumber = prompt("Enter the team number to get detailed information:");
+    const input = prompt("Enter one team number or two team numbers separated by a comma (e.g., 1234 or 1234,5678):");
 
-    if (!teamNumber) {
+    if (!input) {
         insightsResult.innerHTML = "No team number entered.";
         insightsResult.classList.remove("hidden");
         return;
     }
 
-    insightsResult.innerHTML = `Fetching detailed information for team #${teamNumber}...`;
+    const teamNumbers = input.split(',').map(num => num.trim());
+    if (teamNumbers.length > 2) {
+        insightsResult.innerHTML = "Please enter only one or two team numbers.";
+        insightsResult.classList.remove("hidden");
+        return;
+    }
+
+    insightsResult.innerHTML = `Fetching detailed insights for team(s): ${teamNumbers.join(", ")}...`;
     insightsResult.classList.remove("hidden");
 
-    // Fetch team data from the backend
     fetch(`${BACKEND_URL}/rankings`)
         .then(response => response.json())
         .then(data => {
@@ -691,38 +697,105 @@
                 return;
             }
 
-            // Find the team by the entered team number
-            const teamData = data.find(team => team.teamNumber == teamNumber);
-
-            if (!teamData) {
-                insightsResult.innerHTML = `No information found for team #${teamNumber}.`;
+            const teams = teamNumbers.map(num => data.find(team => team.teamNumber == num));
+            if (teams.includes(undefined)) {
+                insightsResult.innerHTML = "One or more team numbers could not be found.";
                 return;
             }
 
-            // Generate very detailed information about the team
-            const detailedInfo = `
-                <h4>Detailed Information for Team #${teamNumber}</h4>
-                <p><strong>Team Name:</strong> ${teamData.teamName || "N/A"}</p>
-                <p><strong>Average Score:</strong> ${teamData.avgScore || "N/A"}</p>
-                <p><strong>Highest Score:</strong> ${teamData.highestScore || "N/A"}</p>
-                <p><strong>Defense Rating:</strong> ${teamData.defense || "N/A"}</p>
-                <p><strong>Strategy Rating:</strong> ${teamData.strategy || "N/A"}</p>
-                <p><strong>Effectiveness Rating:</strong> ${teamData.effectiveness || "N/A"}</p>
-                <p><strong>Drive Skill Rating:</strong> ${teamData.driveSkill || "N/A"}</p>
-                <p><strong>Scoring Rating:</strong> ${teamData.scoring || "N/A"}</p>
-                <p><strong>Consistency Rating:</strong> ${teamData.consistency || "N/A"}</p>
-                <p><strong>Notes:</strong> ${teamData.notes || "No additional notes available."}</p>
-                <p><strong>Submitted By:</strong> ${teamData.username || "Unknown"}</p>
-                <p><strong>Last Updated:</strong> ${teamData._savedAt ? new Date(teamData._savedAt).toLocaleString() : "Unknown"}</p>
-            `;
+            // Helper to generate detailed insight for one team
+            function analyzeTeam(team) {
+                const {
+                    teamName = "Unknown",
+                    avgScore,
+                    highestScore,
+                    defense,
+                    strategy,
+                    effectiveness,
+                    driveSkill,
+                    scoring,
+                    consistency,
+                    notes = "No additional notes available.",
+                    username = "Unknown",
+                    _savedAt
+                } = team;
 
-            insightsResult.innerHTML = detailedInfo;
+                const date = _savedAt ? new Date(_savedAt).toLocaleString() : "Unknown";
+
+                let strengths = [];
+                let weaknesses = [];
+
+                if (scoring >= 8) strengths.push("high-scoring capability");
+                else if (scoring <= 4) weaknesses.push("scoring consistency");
+
+                if (defense >= 8) strengths.push("strong defensive presence");
+                else if (defense <= 4) weaknesses.push("weak defensive play");
+
+                if (driveSkill >= 8) strengths.push("excellent driver control");
+                else if (driveSkill <= 4) weaknesses.push("driver control needs improvement");
+
+                if (strategy >= 8) strengths.push("advanced strategic thinking");
+                else if (strategy <= 4) weaknesses.push("unrefined strategy");
+
+                if (consistency <= 4) weaknesses.push("lack of match-to-match consistency");
+
+                let summary = `<h4>Team #${team.teamNumber} — ${teamName}</h4>`;
+                summary += `<p><strong>Average Score:</strong> ${avgScore || "N/A"}<br>`;
+                summary += `<strong>Highest Score:</strong> ${highestScore || "N/A"}</p>`;
+
+                summary += `<p><strong>Performance Summary:</strong><br>`;
+                summary += `This team ${strengths.length ? "shows strength in " + strengths.join(", ") + "." : "has a balanced but unremarkable profile."} `;
+                summary += weaknesses.length ? `However, they may need to improve in areas like ${weaknesses.join(", ")}.` : "They have minimal weaknesses noted.";
+                summary += `</p>`;
+
+                summary += `<p><strong>Technical Ratings:</strong><br>`;
+                summary += `Defense: ${defense || "N/A"} / 10<br>`;
+                summary += `Strategy: ${strategy || "N/A"} / 10<br>`;
+                summary += `Effectiveness: ${effectiveness || "N/A"} / 10<br>`;
+                summary += `Drive Skill: ${driveSkill || "N/A"} / 10<br>`;
+                summary += `Scoring: ${scoring || "N/A"} / 10<br>`;
+                summary += `Consistency: ${consistency || "N/A"} / 10</p>`;
+
+                summary += `<p><strong>Scout Notes:</strong> ${notes}</p>`;
+                summary += `<p><strong>Submitted By:</strong> ${username}<br>`;
+                summary += `<strong>Last Updated:</strong> ${date}</p>`;
+
+                return summary;
+            }
+
+            // Helper to compare two teams
+            function compareTeams(teamA, teamB) {
+                const compareField = (field) => {
+                    const a = teamA[field] || 0;
+                    const b = teamB[field] || 0;
+                    if (a > b) return `Team ${teamA.teamNumber} has a stronger ${field} (${a} vs ${b}).`;
+                    if (b > a) return `Team ${teamB.teamNumber} leads in ${field} (${b} vs ${a}).`;
+                    return `Both teams are equal in ${field} (${a}).`;
+                };
+
+                const fields = ['avgScore', 'highestScore', 'defense', 'strategy', 'effectiveness', 'driveSkill', 'scoring', 'consistency'];
+                const comparisonResults = fields.map(compareField).join("<br>");
+
+                return `<h4>Comparison Insights</h4><p>${comparisonResults}</p>`;
+            }
+
+            // Output
+            let html = "";
+
+            if (teams.length === 1) {
+                html = analyzeTeam(teams[0]);
+            } else {
+                html = analyzeTeam(teams[0]) + "<hr>" + analyzeTeam(teams[1]) + "<hr>" + compareTeams(teams[0], teams[1]);
+            }
+
+            insightsResult.innerHTML = html;
         })
         .catch(error => {
             console.error("Error fetching data for insights:", error);
             insightsResult.innerHTML = "Failed to fetch team information. Please try again.";
         });
 }
+
 
         function deleteEntry(teamNumber) {
             if (confirm("Are you sure you want to delete this entry?")) {
