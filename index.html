@@ -1017,7 +1017,7 @@ loadBtn.addEventListener('click', async () => {
   loadBtn.textContent = "Loading...";
 
   try {
-    const response = await fetch(`${backendUrl}/api/team/${teamId}/performance`);
+    const response = await fetch(`${BACKEND_URL}/api/team/${teamId}/performance`);
     if (!response.ok) throw new Error(`Error: ${response.status}`);
 
     const data = await response.json();
