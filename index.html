@@ -434,76 +434,81 @@ button:disabled {
     </div>
 
     <script>
-         let chart = null;
-        const BACKEND_URL = "https://perceptra-backend2.onrender.com";  // Updated backend URL
+        let chart = null; // Declare chart globally
+        const BACKEND_URL = "https://perceptra-backend2.onrender.com"; // Updated backend URL
         const loadBtn = document.getElementById('loadBtn');
-    const teamIdInput = document.getElementById('teamIdInput');
-    const chartContainer = document.getElementById('chartContainer');
-    const ctx = document.getElementById('teamPerformanceChart').getContext('2d');
-    const errorDiv = document.getElementById('error');
-
-    loadBtn.addEventListener('click', async () => {
-      errorDiv.textContent = "";
-      chartContainer.style.display = "none";
-
-      const teamId = teamIdInput.value.trim();
-      if (!teamId) {
-        errorDiv.textContent = "Please enter a valid team number.";
-        return;
-      }
-
-      loadBtn.disabled = true;
-      loadBtn.textContent = "Loading...";
-
-      try {
-        const response = await fetch(`${BACKEND_URL}/rankings`);
-        if (!response.ok) throw new Error(`Error: ${response.status}`);
-
-        const allData = await response.json();
-        const teamData = allData
-          .filter(entry => entry.teamNumber === teamId)
-          .sort((a, b) => new Date(a._savedAt) - new Date(b._savedAt));
-
-        if (teamData.length === 0) {
-          throw new Error("No data found for that team.");
-        }
-
-        const labels = teamData.map(entry => new Date(entry._savedAt).toLocaleString());
-        const avgScores = teamData.map(entry => entry.avgScore);
-
-        if (chart) chart.destroy();
-        chart = new Chart(ctx, {
-          type: 'line',
-          data: {
-            labels,
-            datasets: [{
-              label: `Avg Score for Team ${teamId}`,
-              data: avgScores,
-              borderColor: '#bb86fc',
-              backgroundColor: 'rgba(187,134,252,0.2)',
-              fill: true,
-              tension: 0.4
-            }]
-          },
-          options: {
-            responsive: true,
-            scales: {
-              y: {
-                beginAtZero: true
-              }
+        const teamIdInput = document.getElementById('teamIdInput');
+        const chartContainer = document.getElementById('chartContainer');
+        const ctx = document.getElementById('teamPerformanceChart').getContext('2d');
+        const errorDiv = document.getElementById('error');
+    
+        loadBtn.addEventListener('click', async () => {
+            errorDiv.textContent = "";
+            chartContainer.style.display = "none";
+    
+            const teamId = teamIdInput.value.trim();
+            if (!teamId) {
+                errorDiv.textContent = "Please enter a valid team number.";
+                return;
             }
-          }
+    
+            loadBtn.disabled = true;
+            loadBtn.textContent = "Loading...";
+    
+            try {
+                const response = await fetch(`${BACKEND_URL}/rankings`);
+                if (!response.ok) throw new Error(`Error: ${response.status}`);
+    
+                const allData = await response.json();
+                const teamData = allData
+                    .filter(entry => entry.teamNumber === teamId)
+                    .sort((a, b) => new Date(a._savedAt) - new Date(b._savedAt));
+    
+                if (teamData.length === 0) {
+                    throw new Error("No data found for that team.");
+                }
+    
+                const labels = teamData.map(entry => new Date(entry._savedAt).toLocaleString());
+                const avgScores = teamData.map(entry => entry.avgScore);
+    
+                // Destroy the existing chart if it exists
+                if (chart) {
+                    chart.destroy();
+                }
+    
+                // Create a new chart
+                chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels,
+                        datasets: [{
+                            label: `Avg Score for Team ${teamId}`,
+                            data: avgScores,
+                            borderColor: '#bb86fc',
+                            backgroundColor: 'rgba(187,134,252,0.2)',
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+    
+                chartContainer.style.display = "block";
+    
+            } catch (err) {
+                errorDiv.textContent = err.message || "Failed to load chart.";
+            } finally {
+                loadBtn.disabled = false;
+                loadBtn.textContent = "Load Team Performance";
+            }
         });
-
-        chartContainer.style.display = "block";
-
-      } catch (err) {
-        errorDiv.textContent = err.message || "Failed to load chart.";
-      } finally {
-        loadBtn.disabled = false;
-        loadBtn.textContent = "Load Team Performance";
-      }
-    });
         // Team assignments
         const scoutingTeams = {
             "Team 1": ["Joshua The", "Caleb Wieland", "Parker Montgomery", "Loriel Achonduh","Aiden Dejesus","Steve Freece", "Chloe Malcolm","Jessica Wash"],
