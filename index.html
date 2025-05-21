@@ -971,7 +971,7 @@ button:disabled {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ savedAt }) // Send the timestamp to the backend
+            body: JSON.stringify({ _savedAt: savedAt }) // Use "_savedAt" to match the backend
         })
         .then(response => {
             if (!response.ok) throw new Error('Delete failed');
@@ -983,7 +983,7 @@ button:disabled {
             alert('Failed to delete entry. Please try again.');
         });
     }
-}  
+}
 
 // Update the Rankings Table to Pass the Timestamp
 function fetchRankings() {
