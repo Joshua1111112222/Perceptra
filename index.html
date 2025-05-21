@@ -9,9 +9,10 @@
     <link rel="icon" href="logo.png">
     <link rel="icon" href="logo.png" type="image/png">
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#121212">
+    <meta name="theme-color" content="#121212"> <!-- Dark theme color -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    <link rel="stylesheet" href="style.css">
     <style>
         body {
             background-color: #121212;
@@ -30,7 +31,7 @@
         }
 
         .perceptra-heading {
-            color: #bb86fc;
+            color: #bb86fc; /* Purple accent color */
             text-align: center;
             margin-top: 0;
         }
@@ -121,6 +122,7 @@
             min-height: 100px;
         }
 
+        /* Updated Schedule styles */
         .schedule-container {
             margin-top: 20px;
             padding: 15px;
@@ -177,6 +179,7 @@
             text-align: left;
         }
 
+        /* Dark mode scrollbar */
         ::-webkit-scrollbar {
             width: 10px;
         }
@@ -193,6 +196,7 @@
             background: #555;
         }
 
+        /* Prediction styles */
         .prediction-container {
             background-color: #332940;
             padding: 15px;
@@ -224,42 +228,6 @@
             margin-top: 10px;
         }
 
-        #team-analysis-form {
-            margin-top: 20px;
-            background-color: #332940;
-            padding: 15px;
-            border-radius: 8px;
-        }
-        
-        #team-analysis-result {
-            background-color: #1e1e1e;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 15px;
-        }
-        
-        #team-analysis-result h5 {
-            color: #bb86fc;
-            margin-bottom: 5px;
-        }
-        
-        .loader {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #bb86fc;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            animation: spin 1s linear infinite;
-            display: inline-block;
-            vertical-align: middle;
-            margin-left: 10px;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
         @media (max-width: 600px) {
             .container {
                 padding: 10px;
@@ -272,6 +240,34 @@
     </style>
 </head>
 <body>
+    <div id="how-to-use-section">
+        <button id="how-to-use-btn" onclick="goToHowToUse()">How to Use</button>
+    </div>
+    
+    <script>
+        function goToHowToUse() {
+            window.location.href = "how-to-use.html";
+        }
+    </script>
+
+<style>
+    #how-to-use-section {
+        margin-top: 20px;
+        text-align: center;
+    }
+
+    #how-to-use-text {
+        margin-top: 10px;
+        background-color: #1e1e1e;
+        padding: 10px;
+        border-radius: 4px;
+        color: #e0e0e0;
+    }
+
+    .hidden {
+        display: none;
+    }
+</style>
     <div class="container">
         <h1 id="static-heading" class="perceptra-heading" style="display: none;">Perceptra</h1>
         <h2 id="welcome-message" class="perceptra-heading">Perceptra</h2>
@@ -285,8 +281,10 @@
             
             <div id="schedule-display" class="hidden schedule-container"></div>
             
+            <!-- Add Match Prediction Button -->
             <button id="predict-match-btn" onclick="showPredictionForm()">Predict Match Outcome</button>
             
+            <!-- Prediction Form (initially hidden) -->
             <div id="prediction-form" class="hidden prediction-container">
                 <h3>Match Prediction</h3>
                 <label for="red-team1">Red Alliance Team 1 Number:</label>
@@ -306,28 +304,12 @@
                 
                 <div id="prediction-result" class="hidden prediction-result"></div>
             </div>
-            
-            <div id="team-analysis-section" style="margin-top: 20px;">
-                <button onclick="showTeamAnalysis()" style="background-color: #03DAC6; color: #000;">Generate AI Team Report</button>
-                <div id="team-analysis-form" class="hidden">
-                    <h3>AI Team Analysis</h3>
-                    <label for="analysis-team-number">Team Number:</label>
-                    <input type="number" id="analysis-team-number" placeholder="Enter team number">
-                    <button onclick="generateTeamAnalysis()">Generate Report</button>
-                    <button class="close-prediction" onclick="hideTeamAnalysis()">Close</button>
-                    <div id="team-analysis-result" class="hidden">
-                        <h4>AI Scouting Report</h4>
-                        <div id="strengths-weaknesses"></div>
-                        <div id="performance-prediction"></div>
-                        <div id="key-statistics"></div>
-                    </div>
-                </div>
-            </div>
         </div>
 
         <div id="team-section" class="hidden">
             <label for="match-number">Match Number:</label>
             <input type="number" id="match-number" placeholder="Match Number">
+            <!-- Event selection things -->
             <label for="event">Event:</label>
             <select id="event">
                 <option value="">Select Event</option>
@@ -403,39 +385,14 @@
     </div>
 
     <script>
-        // Define constants at the top
-        const BACKEND_URL = "https://perceptra-backend2.onrender.com";
-        const LOCAL_STORAGE_KEY = "perceptra_unsynced_data";
-        
         // Team assignments
         const scoutingTeams = {
-            "Team 1": ["Joshua The", "Caleb Wieland", "Parker Montgomery", "Loriel Achonduh", "Aiden Dejesus", "Steve Freece", "Chloe Malcolm", "Jessica Wash"],
-            "Team 2": ["Nathan Hurd", "Bentley Kucmierz", "Evan Sylvester", "Kaila Petrut"]
+            "Team 1": ["Joshua The", "Caleb Wieland", "Parker Montgomery", "Loriel Achonduh","Aiden Dejesus","Steve Freece", "Chloe Malcolm","Jessica Wash"],
+            "Team 2": ["Nathan Hurd", "Bentley Kucmierz", "Evan Sylvester", "Kaila Petrut",]
         };
+
         const allowedUsernames = [...scoutingTeams["Team 1"], ...scoutingTeams["Team 2"]];
 
-        // Connection status
-        let isOnline = navigator.onLine;
-        updateConnectionStatus();
-        
-        window.addEventListener('online', () => {
-            isOnline = true;
-            updateConnectionStatus();
-        });
-        
-        window.addEventListener('offline', () => {
-            isOnline = false;
-            updateConnectionStatus();
-        });
-
-        function updateConnectionStatus() {
-            const statusEl = document.getElementById('connection-status');
-            statusEl.textContent = isOnline ? 'Online' : 'Offline';
-            statusEl.style.backgroundColor = isOnline ? '#00FF00' : '#FF0000';
-            statusEl.classList.remove('hidden');
-        }
-
-        // Username functions
         function checkUsername() {
             const username = document.getElementById("username").value.trim();
             if (!username) {
@@ -467,8 +424,10 @@
             teamAssignment.textContent = `You are on scouting ${userTeam}`;
             scheduleDisplay.appendChild(teamAssignment);
 
+            // Create blocks for matches 1-100 in alternating 5-match periods
             for (let blockStart = 1; blockStart <= 100; blockStart += 5) {
                 const blockEnd = Math.min(blockStart + 4, 100);
+                // Alternate between on-duty and off-duty every 5 matches
                 const isScouting = (Math.floor((blockStart - 1) / 5) % 2 === (userTeam === "Team 1" ? 0 : 1));
 
                 const dutyBlock = document.createElement("div");
@@ -498,7 +457,28 @@
             document.getElementById("team-section").classList.remove("hidden");
         }
 
-        // Data functions
+        const LOCAL_STORAGE_KEY = "perceptra_unsynced_data";
+        const BACKEND_URL = "https://perceptra-backend2.onrender.com";  // Updated backend URL
+        
+        let isOnline = navigator.onLine;
+        updateConnectionStatus();
+        
+        window.addEventListener('online', () => {
+            isOnline = true;
+            updateConnectionStatus();
+        });
+        window.addEventListener('offline', () => {
+            isOnline = false;
+            updateConnectionStatus();
+        });
+
+        function updateConnectionStatus() {
+            const statusEl = document.getElementById('connection-status');
+            statusEl.textContent = isOnline ? 'Online' : 'Offline';
+            statusEl.style.backgroundColor = isOnline ? '#00FF00' : '#FF0000';
+            statusEl.classList.remove('hidden');
+        }
+
         function getUnsyncedData() {
             const data = localStorage.getItem(LOCAL_STORAGE_KEY);
             return data ? JSON.parse(data) : [];
@@ -506,7 +486,10 @@
 
         function saveToLocalStorage(data) {
             const unsyncedData = getUnsyncedData();
-            data._savedAt = new Date().toISOString();
+            
+            // Add ONLY timestamp metadata
+            data._savedAt = new Date().toISOString(); // ISO format: "2023-11-15T14:30:45.000Z"
+            
             unsyncedData.push(data);
             localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(unsyncedData));
             updateFormsCount();
@@ -514,6 +497,31 @@
 
         function updateFormsCount() {
             document.getElementById('forms-count').textContent = getUnsyncedData().length;
+        }
+
+        function goBack() {
+            document.getElementById("team-section").classList.add("hidden");
+            document.getElementById("username-section").classList.remove("hidden");
+            document.getElementById("static-heading").style.display = "none";
+            document.getElementById("welcome-message").innerText = "Perceptra";
+            document.getElementById("schedule-display").classList.add("hidden");
+        }
+
+        function showAdmin() {
+            document.getElementById("admin-login").classList.add("hidden");
+            document.getElementById("admin-section").classList.remove("hidden");
+        }
+
+        function accessAdmin() {
+            const password = document.getElementById("admin-password").value.trim();
+            if (password === "Quantum Toast") {
+                alert("Access granted!");
+                document.getElementById("admin-section").classList.add("hidden");
+                document.getElementById("rankings-section").classList.remove("hidden");
+                fetchRankings();
+            } else {
+                alert("Invalid password. Please try again.");
+            }
         }
 
         function submitData() {
@@ -540,7 +548,8 @@
 
             saveToLocalStorage(formData);
             alert("Data saved locally!");
-            
+            console.log("Data saved locally:", formData);
+
             // Clear form
             document.getElementById("team-name").value = "";
             document.getElementById("team-number").value = "";
@@ -577,6 +586,7 @@
             if (index >= unsyncedData.length) {
                 alert("All data uploaded successfully!");
                 localStorage.removeItem(LOCAL_STORAGE_KEY);
+                console.log("All data uploaded successfully");
                 updateFormsCount();
                 return;
             }
@@ -602,27 +612,10 @@
             })
             .catch(error => {
                 console.error('Error uploading item:', error);
+                console.log("Failed to upload item:", dataItem);
                 alert(`Failed to upload item ${index + 1}. Trying next item...`);
                 uploadNextItem(index + 1);
             });
-        }
-
-        // Admin functions
-        function showAdmin() {
-            document.getElementById("admin-login").classList.add("hidden");
-            document.getElementById("admin-section").classList.remove("hidden");
-        }
-
-        function accessAdmin() {
-            const password = document.getElementById("admin-password").value.trim();
-            if (password === "Quantum Toast") {
-                alert("Access granted!");
-                document.getElementById("admin-section").classList.add("hidden");
-                document.getElementById("rankings-section").classList.remove("hidden");
-                fetchRankings();
-            } else {
-                alert("Invalid password. Please try again.");
-            }
         }
 
         function fetchRankings() {
@@ -648,11 +641,13 @@
                         row.insertCell(12).innerText = entry.consistency;
                         row.insertCell(13).innerText = entry.notes;
                         
+                        // Add the saved timestamp (new cell at position 14)
                         const savedDate = entry._savedAt ? 
                             new Date(entry._savedAt).toLocaleString() : 
                             'Unknown';
                         row.insertCell(14).innerText = savedDate;
 
+                        // Move delete button to cell 15
                         const deleteCell = row.insertCell(15);
                         const deleteButton = document.createElement("button");
                         deleteButton.innerText = "Delete";
@@ -661,21 +656,21 @@
                         deleteButton.style.border = "none";
                         deleteButton.style.padding = "5px 10px";
                         deleteButton.style.cursor = "pointer";
-                        deleteButton.onclick = () => deleteEntry(entry._id || entry.teamNumber);
+                        deleteButton.onclick = () => deleteEntry(entry.teamNumber);
                         deleteCell.appendChild(deleteButton);
                     });
                 })
                 .catch(error => console.error("Error fetching rankings:", error));
         }
 
-        function deleteEntry(id) {
+        function deleteEntry(teamNumber) {
             if (confirm("Are you sure you want to delete this entry?")) {
                 fetch(`${BACKEND_URL}/delete`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ id })
+                    body: JSON.stringify({ teamNumber })
                 })
                 .then(response => {
                     if (!response.ok) throw new Error('Delete failed');
@@ -706,7 +701,7 @@
             }
         }
 
-        // Prediction functions
+        // Match Prediction Functions
         function showPredictionForm() {
             document.getElementById("prediction-form").classList.remove("hidden");
             document.getElementById("predict-match-btn").classList.add("hidden");
@@ -729,14 +724,17 @@
                 return;
             }
             
+            // Get all team data
             fetch(`${BACKEND_URL}/rankings`)
                 .then(response => response.json())
                 .then(data => {
+                    // Find each team's data
                     const red1Data = data.find(team => team.teamNumber == redTeam1);
                     const red2Data = data.find(team => team.teamNumber == redTeam2);
                     const blue1Data = data.find(team => team.teamNumber == blueTeam1);
                     const blue2Data = data.find(team => team.teamNumber == blueTeam2);
                     
+                    // Calculate average scores for each alliance
                     const redScores = [];
                     const blueScores = [];
                     
@@ -745,16 +743,19 @@
                     if (blue1Data) blueScores.push(parseFloat(blue1Data.avgScore) || 0);
                     if (blue2Data) blueScores.push(parseFloat(blue2Data.avgScore) || 0);
                     
+                    // If no data for a team, use default score (1)
                     if (redScores.length === 0) redScores.push(1);
                     if (blueScores.length === 0) blueScores.push(1);
                     
                     const redAvg = redScores.reduce((a, b) => a + b, 0) / redScores.length;
                     const blueAvg = blueScores.reduce((a, b) => a + b, 0) / blueScores.length;
                     
+                    // Calculate win probability (simple logistic function)
                     const total = redAvg + blueAvg;
                     const redWinProb = Math.round((redAvg / total) * 100);
                     const blueWinProb = 100 - redWinProb;
                     
+                    // Display results
                     const resultEl = document.getElementById("prediction-result");
                     resultEl.innerHTML = '';
                     resultEl.classList.remove("hidden");
@@ -781,110 +782,6 @@
                 });
         }
 
-        // Team Analysis Functions
-        function showTeamAnalysis() {
-            document.getElementById("team-analysis-form").classList.remove("hidden");
-        }
-        
-        function hideTeamAnalysis() {
-            document.getElementById("team-analysis-form").classList.add("hidden");
-            document.getElementById("team-analysis-result").classList.add("hidden");
-        }
-        
-        async function generateTeamAnalysis() {
-            const teamNumber = document.getElementById("analysis-team-number").value;
-            if (!teamNumber) {
-                alert("Please enter a team number");
-                return;
-            }
-        
-            const resultDiv = document.getElementById("team-analysis-result");
-            resultDiv.innerHTML = `<p>Analyzing data... <div class="loader"></div></p>`;
-            resultDiv.classList.remove("hidden");
-        
-            try {
-                const response = await fetch(`${BACKEND_URL}/team-data?team=${teamNumber}`);
-                if (!response.ok) {
-                    throw new Error('Failed to fetch team data');
-                }
-                
-                const teamData = await response.json();
-            
-                if (!teamData || teamData.length === 0) {
-                    resultDiv.innerHTML = `<p>No scouting data found for team ${teamNumber}</p>`;
-                    return;
-                }
-            
-                const report = generateAIScoutingReport(teamData);
-                
-                document.getElementById("strengths-weaknesses").innerHTML = 
-                    `<h5>Strengths & Weaknesses</h5><p>${report.summary}</p>`;
-                
-                document.getElementById("performance-prediction").innerHTML = 
-                    `<h5>Performance Prediction</h5><p>${report.prediction}</p>`;
-                
-                document.getElementById("key-statistics").innerHTML = 
-                    `<h5>Key Statistics</h5><ul>
-                        <li>Average Score: ${report.avgScore}</li>
-                        <li>Best Match: ${report.bestMatch} (${report.highestScore} pts)</li>
-                        <li>Consistency: ${report.consistency}/10</li>
-                        <li>Total Matches Scouted: ${report.matchCount}</li>
-                    </ul>`;
-            
-            } catch (error) {
-                console.error("Analysis error:", error);
-                resultDiv.innerHTML = "<p>Error generating report. Please try again later.</p>";
-            }
-        }
-        
-        function generateAIScoutingReport(teamData) {
-            // Calculate core metrics
-            const scores = teamData.map(m => parseFloat(m.avgScore) || 0);
-            const avgScore = (scores.reduce((a,b) => a + b, 0) / scores.length).toFixed(1);
-            const highestScore = Math.max(...scores);
-            const bestMatch = teamData.find(m => parseFloat(m.avgScore) === highestScore)?.matchNumber || "N/A";
-            
-            // Analyze ratings
-            const categories = {
-                defense: teamData.map(m => parseInt(m.defense) || 5),
-                strategy: teamData.map(m => parseInt(m.strategy) || 5),
-                effectiveness: teamData.map(m => parseInt(m.effectiveness) || 5),
-                driveSkill: teamData.map(m => parseInt(m.driveSkill) || 5),
-                scoring: teamData.map(m => parseInt(m.scoring) || 5),
-                consistency: teamData.map(m => parseInt(m.consistency) || 5)
-            };
-        
-            // Determine strengths (>7 avg) and weaknesses (<4 avg)
-            const strengths = [];
-            const weaknesses = [];
-            
-            Object.entries(categories).forEach(([name, values]) => {
-                const avg = values.reduce((a,b) => a + b, 0) / values.length;
-                if (avg > 7) strengths.push(name);
-                if (avg < 4) weaknesses.push(name);
-            });
-        
-            // Generate natural language report
-            const summary = `This team ${strengths.length ? 'excels at ' + strengths.join(', ') : 'has no standout strengths'}. ` +
-                            `${weaknesses.length ? 'They struggle with ' + weaknesses.join(', ') : 'No significant weaknesses observed.'}`;
-            
-            const prediction = `Expected performance: ${avgScore > 50 ? 'Strong contender' : 'Mid-tier team'} ` +
-                            `with ${highestScore > 60 ? 'peak performance potential' : 'limited high-score capability'}. ` +
-                            `${categories.consistency.reduce((a,b) => a + b, 0)/categories.consistency.length > 7 ? 
-                              'Very reliable performance.' : 'Inconsistent between matches.'}`;
-        
-            return {
-                summary,
-                prediction,
-                avgScore,
-                highestScore,
-                bestMatch,
-                consistency: (categories.consistency.reduce((a,b) => a + b, 0) / categories.consistency.length).toFixed(1),
-                matchCount: teamData.length
-            };
-        }
-
-        // Initialize
         updateFormsCount();
 
         if ('serviceWorker' in navigator) {
