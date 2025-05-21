@@ -966,19 +966,24 @@ button:disabled {
 
         function deleteEntry(savedAt) {
     if (confirm("Are you sure you want to delete this entry?")) {
-        const unsyncedData = getUnsyncedData();
-
-        // Filter out the entry with the matching timestamp
-        const updatedData = unsyncedData.filter(entry => entry._savedAt !== savedAt);
-
-        // Save the updated data back to local storage
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedData));
-
-        alert("Entry deleted successfully!");
-        updateFormsCount();
-        fetchRankings(); // Refresh the rankings table
+        fetch(`${BACKEND_URL}/delete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ savedAt }) // Send the timestamp to the backend
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Delete failed');
+            alert('Entry deleted successfully!');
+            fetchRankings(); // Refresh the rankings table
+        })
+        .catch(error => {
+            console.error('Error deleting entry:', error);
+            alert('Failed to delete entry. Please try again.');
+        });
     }
-}
+}  
 
 // Update the Rankings Table to Pass the Timestamp
 function fetchRankings() {
