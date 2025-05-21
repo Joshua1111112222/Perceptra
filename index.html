@@ -14,6 +14,37 @@
 
     <link rel="stylesheet" href="style.css">
     <style>
+
+body {
+  background-color: #121212;
+  color: #fff;
+  font-family: 'Segoe UI', sans-serif;
+  padding: 2rem;
+}
+
+input, button {
+  padding: 0.6rem 1rem;
+  border-radius: 6px;
+  border: none;
+  margin-right: 10px;
+  font-size: 1rem;
+}
+
+input {
+  width: 200px;
+}
+
+button {
+  background-color: #bb86fc;
+  color: white;
+  cursor: pointer;
+}
+
+button:disabled {
+  background-color: #777;
+  cursor: not-allowed;
+}
+
         body {
             background-color: #121212;
             color: #e0e0e0;
@@ -340,6 +371,18 @@
             <button onclick="submitData()">Submit</button>
             <button onclick="goBack()">Back</button>
         </div>
+        <!-- Add this inside your <body> -->
+<div class="container">
+    <h1>Team Performance Tracker</h1>
+    <input type="text" id="teamIdInput" placeholder="Enter Team Number">
+    <button id="loadBtn">Load Team Performance</button>
+    <div id="error" style="color: #ff6b6b; margin-top: 1rem;"></div>
+  
+    <div id="chartContainer" style="display: none; margin-top: 2rem;">
+      <canvas id="teamPerformanceChart"></canvas>
+    </div>
+  </div>
+  
 
         <div id="admin-login">
             <button onclick="showAdmin()">Admin</button>
@@ -391,6 +434,76 @@
     </div>
 
     <script>
+        const BACKEND_URL = "https://perceptra-backend2.onrender.com";  // Updated backend URL
+        const loadBtn = document.getElementById('loadBtn');
+    const teamIdInput = document.getElementById('teamIdInput');
+    const chartContainer = document.getElementById('chartContainer');
+    const ctx = document.getElementById('teamPerformanceChart').getContext('2d');
+    const errorDiv = document.getElementById('error');
+    let chart = null;
+
+    loadBtn.addEventListener('click', async () => {
+      errorDiv.textContent = "";
+      chartContainer.style.display = "none";
+
+      const teamId = teamIdInput.value.trim();
+      if (!teamId) {
+        errorDiv.textContent = "Please enter a valid team number.";
+        return;
+      }
+
+      loadBtn.disabled = true;
+      loadBtn.textContent = "Loading...";
+
+      try {
+        const response = await fetch(`${BACKEND_URL}/rankings`);
+        if (!response.ok) throw new Error(`Error: ${response.status}`);
+
+        const allData = await response.json();
+        const teamData = allData
+          .filter(entry => entry.teamNumber === teamId)
+          .sort((a, b) => new Date(a._savedAt) - new Date(b._savedAt));
+
+        if (teamData.length === 0) {
+          throw new Error("No data found for that team.");
+        }
+
+        const labels = teamData.map(entry => new Date(entry._savedAt).toLocaleString());
+        const avgScores = teamData.map(entry => entry.avgScore);
+
+        if (chart) chart.destroy();
+        chart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels,
+            datasets: [{
+              label: `Avg Score for Team ${teamId}`,
+              data: avgScores,
+              borderColor: '#bb86fc',
+              backgroundColor: 'rgba(187,134,252,0.2)',
+              fill: true,
+              tension: 0.4
+            }]
+          },
+          options: {
+            responsive: true,
+            scales: {
+              y: {
+                beginAtZero: true
+              }
+            }
+          }
+        });
+
+        chartContainer.style.display = "block";
+
+      } catch (err) {
+        errorDiv.textContent = err.message || "Failed to load chart.";
+      } finally {
+        loadBtn.disabled = false;
+        loadBtn.textContent = "Load Team Performance";
+      }
+    });
         // Team assignments
         const scoutingTeams = {
             "Team 1": ["Joshua The", "Caleb Wieland", "Parker Montgomery", "Loriel Achonduh","Aiden Dejesus","Steve Freece", "Chloe Malcolm","Jessica Wash"],
@@ -464,7 +577,6 @@
         }
 
         const LOCAL_STORAGE_KEY = "perceptra_unsynced_data";
-        const BACKEND_URL = "https://perceptra-backend2.onrender.com";  // Updated backend URL
         
         let isOnline = navigator.onLine;
         updateConnectionStatus();
@@ -929,6 +1041,8 @@
                     });
             });
         }
+
+        
     </script>
 </body>
 </html>
