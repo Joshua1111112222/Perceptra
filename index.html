@@ -434,13 +434,13 @@ button:disabled {
     </div>
 
     <script>
+         let chart = null;
         const BACKEND_URL = "https://perceptra-backend2.onrender.com";  // Updated backend URL
         const loadBtn = document.getElementById('loadBtn');
     const teamIdInput = document.getElementById('teamIdInput');
     const chartContainer = document.getElementById('chartContainer');
     const ctx = document.getElementById('teamPerformanceChart').getContext('2d');
     const errorDiv = document.getElementById('error');
-    let chart = null;
 
     loadBtn.addEventListener('click', async () => {
       errorDiv.textContent = "";
