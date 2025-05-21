@@ -964,26 +964,67 @@ button:disabled {
             insightsResult.innerHTML = "Failed to fetch team information. Please try again.";
         });
 
-        function deleteEntry(teamNumber) {
-            if (confirm("Are you sure you want to delete this entry?")) {
-                fetch(`${BACKEND_URL}/delete`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ teamNumber })
-                })
-                .then(response => {
-                    if (!response.ok) throw new Error('Delete failed');
-                    alert('Entry deleted successfully!');
-                    fetchRankings();
-                })
-                .catch(error => {
-                    console.error('Error deleting entry:', error);
-                    alert('Failed to delete entry. Please try again.');
-                });
-            }
-        }
+        function deleteEntry(savedAt) {
+    if (confirm("Are you sure you want to delete this entry?")) {
+        const unsyncedData = getUnsyncedData();
+
+        // Filter out the entry with the matching timestamp
+        const updatedData = unsyncedData.filter(entry => entry._savedAt !== savedAt);
+
+        // Save the updated data back to local storage
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedData));
+
+        alert("Entry deleted successfully!");
+        updateFormsCount();
+        fetchRankings(); // Refresh the rankings table
+    }
+}
+
+// Update the Rankings Table to Pass the Timestamp
+function fetchRankings() {
+    fetch(`${BACKEND_URL}/rankings`)
+        .then(response => response.json())
+        .then(data => {
+            const rankingsBody = document.getElementById("rankings-body");
+            rankingsBody.innerHTML = "";
+            data.forEach((entry) => {
+                const row = rankingsBody.insertRow();
+                row.insertCell(0).innerText = entry.matchNumber || 'N/A';
+                row.insertCell(1).innerText = entry.event || 'N/A';
+                row.insertCell(2).innerText = entry.teamName;
+                row.insertCell(3).innerText = entry.teamNumber;
+                row.insertCell(4).innerText = entry.avgScore;
+                row.insertCell(5).innerText = entry.highestScore;
+                row.insertCell(6).innerText = entry.username;
+                row.insertCell(7).innerText = entry.defense;
+                row.insertCell(8).innerText = entry.strategy;
+                row.insertCell(9).innerText = entry.effectiveness;
+                row.insertCell(10).innerText = entry.driveSkill;
+                row.insertCell(11).innerText = entry.scoring;
+                row.insertCell(12).innerText = entry.consistency;
+                row.insertCell(13).innerText = entry.notes;
+
+                // Add the saved timestamp
+                const savedDate = entry._savedAt
+                    ? new Date(entry._savedAt).toLocaleString()
+                    : 'Unknown';
+                row.insertCell(14).innerText = savedDate;
+
+                // Add delete button
+                const deleteCell = row.insertCell(15);
+                const deleteButton = document.createElement("button");
+                deleteButton.innerText = "Delete";
+                deleteButton.style.backgroundColor = "#cf6679";
+                deleteButton.style.color = "white";
+                deleteButton.style.border = "none";
+                deleteButton.style.padding = "5px 10px";
+                deleteButton.style.cursor = "pointer";
+                deleteButton.onclick = () => deleteEntry(entry._savedAt); // Pass the timestamp
+                deleteCell.appendChild(deleteButton);
+            });
+        })
+        .catch(error => console.error("Error fetching rankings:", error));
+}
 
         function clearAllEntries() {
             if (confirm("Are you sure you want to clear all entries? This cannot be undone.")) {
