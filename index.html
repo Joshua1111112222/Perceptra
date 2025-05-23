@@ -1096,6 +1096,53 @@ function submitData() {
     document.getElementById("notes").value = "";
 }
 
+// Initialize tokens when the page loads
+window.onload = initializeTokens;
+
+// Call this function in your submitData function after saving the form
+function submitData() {
+    const formData = {
+        username: document.getElementById("username").value.trim(),
+        matchNumber: document.getElementById("match-number").value.trim(),
+        event: document.getElementById("event").value,
+        teamName: document.getElementById("team-name").value.trim(),
+        teamNumber: document.getElementById("team-number").value.trim(),
+        defense: document.getElementById("defense").value,
+        strategy: document.getElementById("strategy").value,
+        effectiveness: document.getElementById("effectiveness").value,
+        driveSkill: document.getElementById("drive-skill").value,
+        scoring: document.getElementById("scoring").value,
+        consistency: document.getElementById("consistency").value,
+        notes: document.getElementById("notes").value.trim(),
+        timestamp: new Date().toISOString()
+    };
+
+    if (!formData.teamName || !formData.teamNumber || !formData.matchNumber || !formData.event) {
+        alert("Please enter all required fields (Team Name, Team Number, Match Number, and Event)");
+        return;
+    }
+
+    saveToLocalStorage(formData);
+    alert("Data saved locally!");
+    console.log("Data saved locally:", formData);
+
+    // Award a token
+    awardToken();
+
+    // Clear form
+    document.getElementById("team-name").value = "";
+    document.getElementById("team-number").value = "";
+    document.getElementById("match-number").value = "";
+    document.getElementById("event").value = "";
+    document.getElementById("defense").value = "";
+    document.getElementById("strategy").value = "";
+    document.getElementById("effectiveness").value = "";
+    document.getElementById("drive-skill").value = "";
+    document.getElementById("scoring").value = "";
+    document.getElementById("consistency").value = "";
+    document.getElementById("notes").value = "";
+}
+
         // Match Prediction Functions
         function showPredictionForm() {
             document.getElementById("prediction-form").classList.remove("hidden");
