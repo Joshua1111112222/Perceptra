@@ -1048,7 +1048,14 @@ function goToGame() {
         updateTokenDisplay(tokenCount - 1);
         window.location.href = "game.html";
     } else {
-        alert("You need at least 1 token to play the game!");
+        const adminPassword = "Quantum Toast"; // Replace with your actual admin password
+        const enteredPassword = prompt("You don't have any tokens. Enter the admin password to play the game:");
+        if (enteredPassword === adminPassword) {
+            alert("Access granted! Redirecting to the game...");
+            window.location.href = "game.html";
+        } else {
+            alert("Incorrect password. You need at least 1 token to play the game.");
+        }
     }
 }
 
