@@ -1048,14 +1048,79 @@ function goToGame() {
         updateTokenDisplay(tokenCount - 1);
         window.location.href = "game.html";
     } else {
-        const adminPassword = "Quantum Toast"; // Replace with your actual admin password
-        const enteredPassword = prompt("You don't have any tokens. Enter the admin password to play the game:");
-        if (enteredPassword === adminPassword) {
-            alert("Access granted! Redirecting to the game...");
-            window.location.href = "game.html";
-        } else {
-            alert("Incorrect password. You need at least 1 token to play the game.");
-        }
+        // Show a custom modal for password input
+        const modal = document.createElement("div");
+        modal.style.position = "fixed";
+        modal.style.top = "0";
+        modal.style.left = "0";
+        modal.style.width = "100%";
+        modal.style.height = "100%";
+        modal.style.backgroundColor = "rgba(0, 0, 0, 0.8)";
+        modal.style.display = "flex";
+        modal.style.justifyContent = "center";
+        modal.style.alignItems = "center";
+        modal.style.zIndex = "1000";
+
+        const modalContent = document.createElement("div");
+        modalContent.style.backgroundColor = "#1e1e1e";
+        modalContent.style.padding = "20px";
+        modalContent.style.borderRadius = "8px";
+        modalContent.style.textAlign = "center";
+        modalContent.style.color = "#fff";
+
+        const passwordLabel = document.createElement("label");
+        passwordLabel.textContent = "Enter Admin Password:";
+        passwordLabel.style.display = "block";
+        passwordLabel.style.marginBottom = "10px";
+
+        const passwordInput = document.createElement("input");
+        passwordInput.type = "password";
+        passwordInput.style.padding = "10px";
+        passwordInput.style.borderRadius = "4px";
+        passwordInput.style.border = "1px solid #444";
+        passwordInput.style.width = "100%";
+        passwordInput.style.marginBottom = "10px";
+
+        const submitButton = document.createElement("button");
+        submitButton.textContent = "Submit";
+        submitButton.style.backgroundColor = "#6200ee";
+        submitButton.style.color = "#fff";
+        submitButton.style.border = "none";
+        submitButton.style.padding = "10px 20px";
+        submitButton.style.borderRadius = "4px";
+        submitButton.style.cursor = "pointer";
+        submitButton.style.marginRight = "10px";
+
+        const cancelButton = document.createElement("button");
+        cancelButton.textContent = "Cancel";
+        cancelButton.style.backgroundColor = "#cf6679";
+        cancelButton.style.color = "#fff";
+        cancelButton.style.border = "none";
+        cancelButton.style.padding = "10px 20px";
+        cancelButton.style.borderRadius = "4px";
+        cancelButton.style.cursor = "pointer";
+
+        submitButton.onclick = () => {
+            const adminPassword = "Quantum Toast"; // Replace with your actual admin password
+            if (passwordInput.value === adminPassword) {
+                alert("Access granted! Redirecting to the game...");
+                modal.remove();
+                window.location.href = "game.html";
+            } else {
+                alert("Incorrect password. You need at least 1 token to play the game.");
+            }
+        };
+
+        cancelButton.onclick = () => {
+            modal.remove();
+        };
+
+        modalContent.appendChild(passwordLabel);
+        modalContent.appendChild(passwordInput);
+        modalContent.appendChild(submitButton);
+        modalContent.appendChild(cancelButton);
+        modal.appendChild(modalContent);
+        document.body.appendChild(modal);
     }
 }
 
