@@ -1,5 +1,6 @@
 const CACHE_NAME = 'perceptra-cache-v1';
 const urlsToCache = [
+  '/game.html',
   '/how-to-use.html',
   '/index.html',
   '/script.js',
