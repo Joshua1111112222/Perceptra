@@ -1001,6 +1001,95 @@ function fetchRankings() {
                 });
             }
         }
+        const TOKEN_STORAGE_KEY = "game_tokens";
+
+// Initialize tokens on page load
+function initializeTokens() {
+    const tokenCount = getTokenCount();
+    updateTokenDisplay(tokenCount);
+}
+
+// Get the current token count from local storage
+function getTokenCount() {
+    return parseInt(localStorage.getItem(TOKEN_STORAGE_KEY)) || 0;
+}
+
+// Save the token count to local storage
+function saveTokenCount(count) {
+    localStorage.setItem(TOKEN_STORAGE_KEY, count);
+}
+
+// Award a token when a form is saved
+function awardToken() {
+    let tokenCount = getTokenCount();
+    tokenCount++;
+    saveTokenCount(tokenCount);
+    updateTokenDisplay(tokenCount);
+}
+
+// Update the token display
+function updateTokenDisplay(count) {
+    const tokenDisplay = document.getElementById("token-display");
+    if (tokenDisplay) {
+        tokenDisplay.textContent = `Game Tokens: ${count}`;
+    }
+}
+
+// Redirect to the game page
+function goToGame() {
+    const tokenCount = getTokenCount();
+    if (tokenCount > 0) {
+        saveTokenCount(tokenCount - 1); // Deduct one token
+        updateTokenDisplay(tokenCount - 1);
+        window.location.href = "game.html";
+    } else {
+        alert("You need at least 1 token to play the game!");
+    }
+}
+
+// Call this function in your submitData function after saving the form
+function submitData() {
+    const formData = {
+        username: document.getElementById("username").value.trim(),
+        matchNumber: document.getElementById("match-number").value.trim(),
+        event: document.getElementById("event").value,
+        teamName: document.getElementById("team-name").value.trim(),
+        teamNumber: document.getElementById("team-number").value.trim(),
+        defense: document.getElementById("defense").value,
+        strategy: document.getElementById("strategy").value,
+        effectiveness: document.getElementById("effectiveness").value,
+        driveSkill: document.getElementById("drive-skill").value,
+        scoring: document.getElementById("scoring").value,
+        consistency: document.getElementById("consistency").value,
+        notes: document.getElementById("notes").value.trim(),
+        timestamp: new Date().toISOString()
+    };
+
+    if (!formData.teamName || !formData.teamNumber || !formData.matchNumber || !formData.event) {
+        alert("Please enter all required fields (Team Name, Team Number, Match Number, and Event)");
+        return;
+    }
+
+    saveToLocalStorage(formData);
+    alert("Data saved locally!");
+    console.log("Data saved locally:", formData);
+
+    // Award a token
+    awardToken();
+
+    // Clear form
+    document.getElementById("team-name").value = "";
+    document.getElementById("team-number").value = "";
+    document.getElementById("match-number").value = "";
+    document.getElementById("event").value = "";
+    document.getElementById("defense").value = "";
+    document.getElementById("strategy").value = "";
+    document.getElementById("effectiveness").value = "";
+    document.getElementById("drive-skill").value = "";
+    document.getElementById("scoring").value = "";
+    document.getElementById("consistency").value = "";
+    document.getElementById("notes").value = "";
+}
 
         // Match Prediction Functions
         function showPredictionForm() {
