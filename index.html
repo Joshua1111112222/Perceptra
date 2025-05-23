@@ -403,7 +403,7 @@ button:disabled {
 
         <div id="token-section">
             <p id="token-display">Game Tokens: 0</p>
-            <button onclick="goToGame()">Play Game</button>
+            <button onclick="goToGame()">Play  Deluxe Cookie Clicker</button>
         </div>
 
         <div id="upload-section">
@@ -1103,11 +1103,11 @@ function goToGame() {
         submitButton.onclick = () => {
             const adminPassword = "Quantum Toast"; // Replace with your actual admin password
             if (passwordInput.value === adminPassword) {
-                alert("Access granted! Redirecting to the game...");
+                alert("Access granted! Redirecting to Deluxe Cookie Clicker...");
                 modal.remove();
                 window.location.href = "game.html";
             } else {
-                alert("Incorrect password. You need at least 1 token to play the game.");
+                alert("Incorrect password. You need at least 1 token to play Deluxe Cookie Clicker.");
             }
         };
 
