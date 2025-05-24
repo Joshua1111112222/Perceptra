@@ -542,10 +542,82 @@
         // Backend URL - Update this to your actual backend URL
         const BACKEND_URL = 'https://perceptra-backend2.onrender.com'; // Replace with your actual backend URL
         
-        function goBack() {
-            window.location.href = "index.html";
-        }
+        // Update your goBack() function to this:
+async function goBack() {
+    // 1. First save the game locally
+    saveGame(); // This uses your existing save function
+    
+    // 2. Try to submit score to leaderboard
+    try {
+        await submitScore(); // Uses your existing submit function
+    } catch (error) {
+        console.log("Score submission failed, but local save completed");
+    }
+    
+    // 3. Redirect back after operations complete
+    window.location.href = "index.html";
+}
 
+// Add this event listener to prevent accidental navigation:
+window.addEventListener('beforeunload', (e) => {
+    // Only trigger if the game has progress
+    if (game.totalCookies > 0 || game.upgrades.some(u => u.owned > 0)) {
+        saveGame();
+    }
+});
+
+// Update your back button event listener:
+document.getElementById('back-btn').addEventListener('click', async (e) => {
+    e.preventDefault();
+    await goBack();
+});
+
+// Update your existing saveGame() function to ensure it's robust:
+function saveGame() {
+    const saveData = {
+        game: {
+            cookies: game.cookies,
+            totalCookies: game.totalCookies,
+            cookiesPerClick: game.cookiesPerClick,
+            cookiesPerSecond: game.cookiesPerSecond,
+            upgrades: game.upgrades,
+            achievements: game.achievements,
+            username: game.username
+        },
+        stats: stats,
+        timestamp: Date.now()
+    };
+    
+    localStorage.setItem('cookieClickerSave', JSON.stringify(saveData));
+    showNotification('Game saved locally!');
+}
+
+// Make sure your submitScore() has proper error handling:
+async function submitScore() {
+    if (!game.username) return;
+
+    try {
+        const response = await fetch(`${BACKEND_URL}/leaderboard/submit`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                username: game.username,
+                score: Math.floor(game.totalCookies),
+                replace: true
+            })
+        });
+
+        if (!response.ok) throw new Error('Network response was not ok');
+        
+        showNotification('Score submitted to leaderboard!');
+    } catch (error) {
+        console.error('Submission failed, saving locally instead');
+        // Local fallback is already handled in saveGame()
+        throw error; // Re-throw so goBack() knows it failed
+    }
+}
         // List of valid usernames
         const validUsernames = [
             "Joshua The Mobile",
