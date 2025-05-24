@@ -487,6 +487,8 @@
             <button id="reset-btn">Reset Game</button>
             <button id="submit-score-btn">Submit Score</button>
         </div>
+
+        <button id="clear-leaderboard-btn">Clear Leaderboard</button>
         
         <div id="save-notification">Game Saved!</div>
         
@@ -1129,6 +1131,46 @@
                 }
             }
         }
+
+        // Admin password for clearing the leaderboard
+const ADMIN_PASSWORD = "Quantum Toast";
+
+// Clear leaderboard functionality
+async function clearLeaderboard() {
+    const enteredPassword = prompt("Enter the admin password to clear the leaderboard:");
+
+    if (enteredPassword === ADMIN_PASSWORD) {
+        try {
+            const response = await fetch(`${BACKEND_URL}/leaderboard/clear`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (!response.ok) throw new Error('Failed to clear leaderboard');
+
+            const result = await response.json();
+
+            if (result.status === 'success') {
+                alert("Leaderboard cleared successfully!");
+                game.leaderboard = []; // Clear the local leaderboard
+                renderLeaderboard(); // Update the leaderboard display
+            } else {
+                alert("Failed to clear leaderboard: " + result.message);
+            }
+        } catch (error) {
+            console.error("Error clearing leaderboard:", error);
+            alert("An error occurred while clearing the leaderboard.");
+        }
+    } else {
+        alert("Incorrect password. Leaderboard not cleared.");
+    }
+}
+
+// Add event listener to the clear leaderboard button
+const clearLeaderboardBtn = document.getElementById('clear-leaderboard-btn');
+clearLeaderboardBtn.addEventListener('click', clearLeaderboard);
 
         // Reset game
         function resetGame() {
