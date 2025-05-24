@@ -612,18 +612,18 @@
         }
 
         function verifyUsername() {
-            const enteredUsername = usernameInput.value.trim();
-            
-            if (validUsernames.includes(enteredUsername)) {
-                game.username = enteredUsername;
-                usernameModal.style.display = 'none';
-                gameContent.style.display = 'block';
-                startGame();
-            } else {
-                usernameError.textContent = `Sorry, "${enteredUsername}" was not found in the database. Please contact Joshua or a mentor if you cannot get in.`;
-                usernameError.style.display = 'block';
-            }
-        }
+    const enteredUsername = usernameInput.value.trim(); // Ensure no extra spaces
+
+    if (validUsernames.includes(enteredUsername)) {
+        game.username = enteredUsername; // Assign the full username
+        usernameModal.style.display = 'none';
+        gameContent.style.display = 'block';
+        startGame();
+    } else {
+        usernameError.textContent = `Sorry, "${enteredUsername}" was not found in the database. Please contact Joshua or a mentor if you cannot get in.`;
+        usernameError.style.display = 'block';
+    }
+}
 
         async function startGame() {
             game.upgrades = JSON.parse(JSON.stringify(upgradesData));
@@ -934,66 +934,65 @@
 
         // Submit score to backend
         async function submitScore() {
-            if (!game.username) return;
-            
-            try {
-                const response = await fetch(`${BACKEND_URL}/leaderboard/submit`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        username: game.username,
-                        score: game.totalCookies
-                    })
-                });
-                
-                if (!response.ok) throw new Error('Network response was not ok');
-                
-                const result = await response.json();
-                
-                if (result.status === 'success') {
-                    // Update local leaderboard display
-                    await fetchLeaderboard();
-                    
-                    // Show notification
-                    saveNotification.textContent = 'Score Submitted to Leaderboard!';
-                    saveNotification.classList.add('show-notification');
-                    setTimeout(() => {
-                        saveNotification.classList.remove('show-notification');
-                    }, 2000);
-                }
-            } catch (error) {
-                console.error('Error submitting score:', error);
-                // Fall back to local storage
-                const existingEntryIndex = game.leaderboard.findIndex(entry => entry.username === game.username);
-                
-                if (existingEntryIndex !== -1) {
-                    // Update existing score if it's higher
-                    if (game.totalCookies > game.leaderboard[existingEntryIndex].score) {
-                        game.leaderboard[existingEntryIndex].score = game.totalCookies;
-                    }
-                } else {
-                    // Add new entry
-                    game.leaderboard.push({
-                        username: game.username,
-                        score: game.totalCookies
-                    });
-                }
-                
-                // Save to local storage
-                localStorage.setItem('cookieClickerLeaderboard', JSON.stringify(game.leaderboard));
-                renderLeaderboard();
-                
-                // Show notification
-                saveNotification.textContent = 'Score Saved Locally (Backend Unavailable)';
-                saveNotification.classList.add('show-notification');
-                setTimeout(() => {
-                    saveNotification.classList.remove('show-notification');
-                }, 2000);
-            }
-        }
+    if (!game.username) return; // Ensure username is set
 
+    try {
+        const response = await fetch(`${BACKEND_URL}/leaderboard/submit`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                username: game.username, // Send the full username
+                score: game.totalCookies // Send the total cookies as the score
+            })
+        });
+
+        if (!response.ok) throw new Error('Network response was not ok');
+
+        const result = await response.json();
+
+        if (result.status === 'success') {
+            // Update local leaderboard display
+            await fetchLeaderboard();
+
+            // Show notification
+            saveNotification.textContent = 'Score Submitted to Leaderboard!';
+            saveNotification.classList.add('show-notification');
+            setTimeout(() => {
+                saveNotification.classList.remove('show-notification');
+            }, 2000);
+        }
+    } catch (error) {
+        console.error('Error submitting score:', error);
+        // Fall back to local storage
+        const existingEntryIndex = game.leaderboard.findIndex(entry => entry.username === game.username);
+        
+        if (existingEntryIndex !== -1) {
+            // Update existing score if it's higher
+            if (game.totalCookies > game.leaderboard[existingEntryIndex].score) {
+                game.leaderboard[existingEntryIndex].score = game.totalCookies;
+            }
+        } else {
+            // Add new entry
+            game.leaderboard.push({
+                username: game.username,
+                score: game.totalCookies
+            });
+        }
+        
+        // Save to local storage
+        localStorage.setItem('cookieClickerLeaderboard', JSON.stringify(game.leaderboard));
+        renderLeaderboard();
+        
+        // Show notification
+        saveNotification.textContent = 'Score Saved Locally (Backend Unavailable)';
+        saveNotification.classList.add('show-notification');
+        setTimeout(() => {
+            saveNotification.classList.remove('show-notification');
+        }, 2000);
+    }
+}
         // Check for unlocked achievements
         function checkAchievements() {
             let needsUpdate = false;
