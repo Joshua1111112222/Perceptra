@@ -753,20 +753,37 @@
 
         // Initialize the game
         async function init() {
-            // Show username modal first
-            usernameModal.style.display = 'flex';
-            gameContent.style.display = 'none';
-            
-            // Set up username submission
-            submitUsernameBtn.addEventListener('click', verifyUsername);
-            usernameInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    verifyUsername();
-                }
-            });
-            
-            // Start the game after username verification
+    // First try to load any existing game
+    const saveData = localStorage.getItem('cookieClickerSave');
+    if (saveData) {
+        try {
+            const parsedData = JSON.parse(saveData);
+            if (parsedData.game && parsedData.game.username) {
+                // If we have a saved username, use it and skip the modal
+                game.username = parsedData.game.username;
+                updateWelcomeMessage();
+                gameContent.style.display = 'block';
+                await startGame();
+                return;
+            }
+        } catch (e) {
+            console.error('Failed to load save:', e);
         }
+    }
+
+    // Show username modal if no saved game exists
+    usernameModal.style.display = 'flex';
+    gameContent.style.display = 'none';
+    
+    // Set up username submission
+    submitUsernameBtn.addEventListener('click', verifyUsername);
+    usernameInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            verifyUsername();
+        }
+    });
+}
+            // Start the game after username verificatiom
 
         function verifyUsername() {
             const enteredUsername = usernameInput.value.trim(); // Ensure no extra spaces
