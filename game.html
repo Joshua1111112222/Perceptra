@@ -6,12 +6,13 @@
     <title>Deluxe Cookie Clicker</title>
     <style>
         :root {
-            --primary-color: #bb86fc; /* Purple accent */
-            --secondary-color: #cf6679; /* Red accent */
-            --background-color: #121212; /* Dark background */
-            --text-color: #e0e0e0; /* Light text */
-            --upgrade-color: #03dac6; /* Teal for upgrades */
-            --achievement-color: #ffb74d; /* Amber for achievements */
+            --primary-color: #bb86fc;
+            --secondary-color: #cf6679;
+            --background-color: #121212;
+            --text-color: #e0e0e0;
+            --upgrade-color: #03dac6;
+            --achievement-color: #ffb74d;
+            --leaderboard-color: #6200ee;
         }
     
         body {
@@ -107,7 +108,7 @@
             left: 0;
         }
     
-        .upgrades, .achievements {
+        .upgrades, .achievements, .leaderboard {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
@@ -115,7 +116,7 @@
             min-width: min-content;
         }
     
-        .upgrade, .achievement {
+        .upgrade, .achievement, .leaderboard-entry {
             background-color: #2a2a2a;
             border-radius: 8px;
             padding: 10px;
@@ -133,18 +134,24 @@
             border-left: 4px solid var(--achievement-color);
         }
     
-        .upgrade:hover, .achievement:hover {
+        .leaderboard-entry {
+            border-left: 4px solid var(--leaderboard-color);
+            width: 100%;
+            text-align: left;
+        }
+    
+        .upgrade:hover, .achievement:hover, .leaderboard-entry:hover {
             transform: translateY(-5px);
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.7);
         }
     
-        .upgrade-name, .achievement-name {
+        .upgrade-name, .achievement-name, .leaderboard-name {
             font-weight: bold;
             margin: 5px 0;
             word-break: break-word;
         }
     
-        .upgrade-price, .achievement-requirement {
+        .upgrade-price, .achievement-requirement, .leaderboard-score {
             color: #b0b0b0;
             font-size: 0.9em;
             word-break: break-word;
@@ -312,6 +319,55 @@
             transform: scale(0.95);
         }
         
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 90%;
+            width: 400px;
+            text-align: center;
+        }
+        
+        .modal h2 {
+            color: var(--primary-color);
+            margin-top: 0;
+        }
+        
+        .modal input {
+            width: 80%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: none;
+            background-color: #2a2a2a;
+            color: var(--text-color);
+        }
+        
+        .modal button {
+            margin: 10px 5px;
+        }
+        
+        /* Error message */
+        .error-message {
+            color: var(--secondary-color);
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
         /* Mobile-specific styles */
         @media (max-width: 768px) {
             body {
@@ -328,7 +384,7 @@
                 height: 200px;
             }
             
-            .upgrade, .achievement {
+            .upgrade, .achievement, .leaderboard-entry {
                 min-width: 120px;
                 padding: 8px;
             }
@@ -361,11 +417,11 @@
                 height: 180px;
             }
             
-            .upgrades, .achievements {
+            .upgrades, .achievements, .leaderboard {
                 gap: 10px;
             }
             
-            .upgrade, .achievement {
+            .upgrade, .achievement, .leaderboard-entry {
                 min-width: 100px;
                 font-size: 0.8em;
             }
@@ -383,44 +439,91 @@
 <body>
     <button id="back-btn" onclick="goBack()">Back</button>
     
-    <h1>Deluxe Cookie Clicker</h1>
-    
-    <div id="counter">0 cookies</div>
-    <div id="cookies-per-second">0 cookies per second</div>
-    
-    <div id="cookie-container">
-        <img id="cookie" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48Y2lyY2xlIGN4PSIyNTYiIGN5PSIyNTYiIHI9IjI0MCIgZmlsbD0iI2YzOWMxMiIgc3Ryb2tlPSIjZDI4ZjFhIiBzdHJva2Utd2lkdGg9IjIwIi8+PGNpcmNsZSBjeD0iMTYwIiBjeT0iMTYwIiByPSIyMCIgZmlsbD0iI2QyOGYxYSIvPjxjaXJjbGUgY3g9IjM1MCIgY3k9IjE2MCIgcj0iMjAiIGZpbGw9IiNkMjhmMWEiLz48Y2lyY2xlIGN4PSIyMDAiIGN5PSIyMjAiIHI9IjIwIiBmaWxsPSIjZDI4ZjFhIi8+PGNpcmNsZSBjeD0iMzAwIiBjeT0iMjIwIiByPSIyMCIgZmlsbD0iI2QyOGYxYSIvPjxwYXRoIGQ9Ik0xNjAsMzIwIHE4MCw2MCAxNjAsMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZDI4ZjFhIiBzdHJva2Utd2lkdGg9IjEwIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48L3N2Zz4=" alt="Cookie">
-        <div id="cookie-shine"></div>
-    </div>
-    
-    <div class="section">
-        <h2 class="section-title">Upgrades</h2>
-        <div class="upgrades" id="upgrades-container">
-            <!-- Upgrades will be added here by JavaScript -->
+    <div id="username-modal" class="modal">
+        <div class="modal-content">
+            <h2>Enter Your Username</h2>
+            <p>Please enter your username to play Cookie Clicker</p>
+            <input type="text" id="username-input" placeholder="Your username">
+            <div id="username-error" class="error-message" style="display: none;"></div>
+            <button id="submit-username">Submit</button>
         </div>
     </div>
     
-    <div class="section">
-        <h2 class="section-title">Achievements</h2>
-        <div class="achievements" id="achievements-container">
-            <!-- Achievements will be added here by JavaScript -->
+    <div id="game-content" style="display: none;">
+        <h1>Deluxe Cookie Clicker</h1>
+        
+        <div id="counter">0 cookies</div>
+        <div id="cookies-per-second">0 cookies per second</div>
+        
+        <div id="cookie-container">
+            <img id="cookie" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48Y2lyY2xlIGN4PSIyNTYiIGN5PSIyNTYiIHI9IjI0MCIgZmlsbD0iI2YzOWMxMiIgc3Ryb2tlPSIjZDI4ZjFhIiBzdHJva2Utd2lkdGg9IjIwIi8+PGNpcmNsZSBjeD0iMTYwIiBjeT0iMTYwIiByPSIyMCIgZmlsbD0iI2QyOGYxYSIvPjxjaXJjbGUgY3g9IjM1MCIgY3k9IjE2MCIgcj0iMjAiIGZpbGw9IiNkMjhmMWEiLz48Y2lyY2xlIGN4PSIyMDAiIGN5PSIyMjAiIHI9IjIwIiBmaWxsPSIjZDI4ZjFhIi8+PGNpcmNsZSBjeD0iMzAwIiBjeT0iMjIwIiByPSIyMCIgZmlsbD0iI2QyOGYxYSIvPjxwYXRoIGQ9Ik0xNjAsMzIwIHE4MCw2MCAxNjAsMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZDI4ZjFhIiBzdHJva2Utd2lkdGg9IjEwIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48L3N2Zz4=" alt="Cookie">
+            <div id="cookie-shine"></div>
         </div>
+        
+        <div class="section">
+            <h2 class="section-title">Upgrades</h2>
+            <div class="upgrades" id="upgrades-container">
+                <!-- Upgrades will be added here by JavaScript -->
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2 class="section-title">Achievements</h2>
+            <div class="achievements" id="achievements-container">
+                <!-- Achievements will be added here by JavaScript -->
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2 class="section-title">Leaderboard</h2>
+            <div class="leaderboard" id="leaderboard-container">
+                <!-- Leaderboard will be added here by JavaScript -->
+            </div>
+        </div>
+        
+        <div>
+            <button id="save-btn">Save Game</button>
+            <button id="load-btn">Load Game</button>
+            <button id="reset-btn">Reset Game</button>
+            <button id="submit-score-btn">Submit Score</button>
+        </div>
+        
+        <div id="save-notification">Game Saved!</div>
+        
+        <div class="tooltip" id="tooltip"></div>
     </div>
-    
-    <div>
-        <button id="save-btn">Save Game</button>
-        <button id="load-btn">Load Game</button>
-        <button id="reset-btn">Reset Game</button>
-    </div>
-    
-    <div id="save-notification">Game Saved!</div>
-    
-    <div class="tooltip" id="tooltip"></div>
 
     <script>
+        // Backend URL - Update this to your actual backend URL
+        const BACKEND_URL = 'https://perceptra-backend2.onrender.com'; // Replace with your actual backend URL
+        
         function goBack() {
             window.location.href = "index.html";
         }
+
+        // List of valid usernames
+        const validUsernames = [
+            "Joshua The",
+            "Caleb Wieland",
+            "Loriel Achonduh",
+            "Taylor",
+            "Jordan",
+            "Casey",
+            "Riley",
+            "Jamie",
+            "Morgan",
+            "Avery",
+            "Quinn",
+            "Peyton",
+            "Skyler",
+            "Dakota",
+            "Emerson",
+            "Rowan",
+            "Sage",
+            "Finley",
+            "Hayden",
+            "Kai"
+        ];
 
         // Game state
         const game = {
@@ -436,7 +539,9 @@
                 timeout: null
             },
             lastSave: Date.now(),
-            autoSaveInterval: 30000 // 30 seconds
+            autoSaveInterval: 30000, // 30 seconds
+            username: "",
+            leaderboard: []
         };
 
         // Upgrades data
@@ -479,20 +584,58 @@
         const cpsDisplay = document.getElementById('cookies-per-second');
         const upgradesContainer = document.getElementById('upgrades-container');
         const achievementsContainer = document.getElementById('achievements-container');
+        const leaderboardContainer = document.getElementById('leaderboard-container');
         const saveBtn = document.getElementById('save-btn');
         const loadBtn = document.getElementById('load-btn');
         const resetBtn = document.getElementById('reset-btn');
+        const submitScoreBtn = document.getElementById('submit-score-btn');
         const saveNotification = document.getElementById('save-notification');
         const cookieShine = document.getElementById('cookie-shine');
         const tooltip = document.getElementById('tooltip');
+        const usernameModal = document.getElementById('username-modal');
+        const usernameInput = document.getElementById('username-input');
+        const submitUsernameBtn = document.getElementById('submit-username');
+        const usernameError = document.getElementById('username-error');
+        const gameContent = document.getElementById('game-content');
 
         // Initialize the game
-        function init() {
+        async function init() {
+            // Show username modal first
+            usernameModal.style.display = 'flex';
+            gameContent.style.display = 'none';
+            
+            // Set up username submission
+            submitUsernameBtn.addEventListener('click', verifyUsername);
+            usernameInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    verifyUsername();
+                }
+            });
+            
+            // Start the game after username verification
+        }
+
+        function verifyUsername() {
+            const enteredUsername = usernameInput.value.trim();
+            
+            if (validUsernames.includes(enteredUsername)) {
+                game.username = enteredUsername;
+                usernameModal.style.display = 'none';
+                gameContent.style.display = 'block';
+                startGame();
+            } else {
+                usernameError.textContent = `Sorry, "${enteredUsername}" was not found in the database. Please contact Joshua or a mentor if you cannot get in.`;
+                usernameError.style.display = 'block';
+            }
+        }
+
+        async function startGame() {
             game.upgrades = JSON.parse(JSON.stringify(upgradesData));
             game.achievements = JSON.parse(JSON.stringify(achievementsData));
             
             renderUpgrades();
             renderAchievements();
+            await fetchLeaderboard();
             updateDisplay();
             
             // Start game loop
@@ -750,6 +893,111 @@
             });
         }
 
+        // Render leaderboard
+        function renderLeaderboard() {
+            leaderboardContainer.innerHTML = '';
+            
+            // Display top scores
+            game.leaderboard.slice(0, 10).forEach((entry, index) => {
+                const entryEl = document.createElement('div');
+                entryEl.className = 'leaderboard-entry';
+                entryEl.innerHTML = `
+                    <div class="leaderboard-name">${index + 1}. ${entry.username}</div>
+                    <div class="leaderboard-score">${formatNumber(entry.score)} cookies</div>
+                `;
+                
+                leaderboardContainer.appendChild(entryEl);
+            });
+            
+            // Add message if leaderboard is empty
+            if (game.leaderboard.length === 0) {
+                const emptyMessage = document.createElement('div');
+                emptyMessage.className = 'leaderboard-entry';
+                emptyMessage.textContent = 'No scores submitted yet';
+                leaderboardContainer.appendChild(emptyMessage);
+            }
+        }
+
+        // Fetch leaderboard from backend
+        async function fetchLeaderboard() {
+            try {
+                const response = await fetch(`${BACKEND_URL}/leaderboard`);
+                if (!response.ok) throw new Error('Network response was not ok');
+                game.leaderboard = await response.json();
+                renderLeaderboard();
+            } catch (error) {
+                console.error('Error fetching leaderboard:', error);
+                // Fall back to local storage if available
+                const savedLeaderboard = localStorage.getItem('cookieClickerLeaderboard');
+                if (savedLeaderboard) {
+                    game.leaderboard = JSON.parse(savedLeaderboard);
+                    renderLeaderboard();
+                }
+            }
+        }
+
+        // Submit score to backend
+        async function submitScore() {
+            if (!game.username) return;
+            
+            try {
+                const response = await fetch(`${BACKEND_URL}/leaderboard/submit`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        username: game.username,
+                        score: game.totalCookies
+                    })
+                });
+                
+                if (!response.ok) throw new Error('Network response was not ok');
+                
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    // Update local leaderboard display
+                    await fetchLeaderboard();
+                    
+                    // Show notification
+                    saveNotification.textContent = 'Score Submitted to Leaderboard!';
+                    saveNotification.classList.add('show-notification');
+                    setTimeout(() => {
+                        saveNotification.classList.remove('show-notification');
+                    }, 2000);
+                }
+            } catch (error) {
+                console.error('Error submitting score:', error);
+                // Fall back to local storage
+                const existingEntryIndex = game.leaderboard.findIndex(entry => entry.username === game.username);
+                
+                if (existingEntryIndex !== -1) {
+                    // Update existing score if it's higher
+                    if (game.totalCookies > game.leaderboard[existingEntryIndex].score) {
+                        game.leaderboard[existingEntryIndex].score = game.totalCookies;
+                    }
+                } else {
+                    // Add new entry
+                    game.leaderboard.push({
+                        username: game.username,
+                        score: game.totalCookies
+                    });
+                }
+                
+                // Save to local storage
+                localStorage.setItem('cookieClickerLeaderboard', JSON.stringify(game.leaderboard));
+                renderLeaderboard();
+                
+                // Show notification
+                saveNotification.textContent = 'Score Saved Locally (Backend Unavailable)';
+                saveNotification.classList.add('show-notification');
+                setTimeout(() => {
+                    saveNotification.classList.remove('show-notification');
+                }, 2000);
+            }
+        }
+
         // Check for unlocked achievements
         function checkAchievements() {
             let needsUpdate = false;
@@ -848,6 +1096,7 @@
             localStorage.setItem('cookieClickerSave', JSON.stringify(saveData));
             
             // Show notification
+            saveNotification.textContent = 'Game Saved!';
             saveNotification.classList.add('show-notification');
             setTimeout(() => {
                 saveNotification.classList.remove('show-notification');
@@ -946,6 +1195,13 @@
             resetBtn.addEventListener('touchend', (e) => {
                 e.preventDefault();
                 resetGame();
+            }, { passive: false });
+            
+            // Submit score button
+            submitScoreBtn.addEventListener('click', submitScore);
+            submitScoreBtn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                submitScore();
             }, { passive: false });
             
             // Tooltip for cookie
