@@ -72,16 +72,21 @@
         }
     
         body {
-            font-family: 'Arial', sans-serif;
-            background-color: var(--background-color);
-            color: var(--text-color);
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 20px;
-            text-align: center;
-            -webkit-tap-highlight-color: transparent;
-            touch-action: manipulation;
-        }
+    /* Keep your existing body styles */
+    font-family: 'Arial', sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+    text-align: center;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    
+    /* Add these new properties */
+    padding-top: env(safe-area-inset-top);
+    min-height: calc(100vh - env(safe-area-inset-top));
+}
     
         h1 {
             color: var(--primary-color);
