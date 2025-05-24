@@ -6,7 +6,6 @@
     <title>Deluxe Cookie Clicker</title>
     <style>
         /* Add to your existing modal styles */
-        
 .password-modal {
     display: none;
     position: fixed;
@@ -46,6 +45,27 @@
             --upgrade-color: #03dac6;
             --achievement-color: #ffb74d;
             --leaderboard-color: #6200ee;
+        }
+
+        /* New styles for header and welcome message */
+        .header {
+            background-color: var(--background-color);
+            padding: 10px 0;
+            text-align: center;
+            width: 100%;
+        }
+
+        .welcome-message {
+            color: var(--primary-color);
+            font-size: 1.2em;
+            margin-bottom: 5px;
+        }
+
+        /* Add CPS explanation */
+        #cookies-per-second::after {
+            content: " (CPS = Cookies Per Second)";
+            font-size: 0.8em;
+            opacity: 0.7;
         }
     
         body {
@@ -494,7 +514,10 @@
     </div>
     
     <div id="game-content" style="display: none;">
-        <h1>Deluxe Cookie Clicker</h1>
+        <div class="header">
+            <div class="welcome-message" id="welcome-message"></div>
+            <h1>Deluxe Cookie Clicker</h1>
+        </div>
         
         <div id="counter">0 cookies</div>
         <div id="cookies-per-second">0 cookies per second</div>
@@ -544,81 +567,92 @@
         const BACKEND_URL = 'https://perceptra-backend2.onrender.com'; // Replace with your actual backend URL
         
         // Update your goBack() function to this:
-async function goBack() {
-    // 1. First save the game locally
-    saveGame(); // This uses your existing save function
-    
-    // 2. Try to submit score to leaderboard
-    try {
-        await submitScore(); // Uses your existing submit function
-    } catch (error) {
-        console.log("Score submission failed, but local save completed");
-    }
-    
-    // 3. Redirect back after operations complete
-    window.location.href = "index.html";
-}
+        async function goBack() {
+            // 1. First save the game locally
+            saveGame(); // This uses your existing save function
+            
+            // 2. Try to submit score to leaderboard
+            try {
+                await submitScore(); // Uses your existing submit function
+            } catch (error) {
+                console.log("Score submission failed, but local save completed");
+            }
+            
+            // 3. Redirect back after operations complete
+            window.location.href = "index.html";
+        }
 
-// Add this event listener to prevent accidental navigation:
-window.addEventListener('beforeunload', (e) => {
-    // Only trigger if the game has progress
-    if (game.totalCookies > 0 || game.upgrades.some(u => u.owned > 0)) {
-        saveGame();
-    }
-});
-
-// Update your back button event listener:
-document.getElementById('back-btn').addEventListener('click', async (e) => {
-    e.preventDefault();
-    await goBack();
-});
-
-// Update your existing saveGame() function to ensure it's robust:
-function saveGame() {
-    const saveData = {
-        game: {
-            cookies: game.cookies,
-            totalCookies: game.totalCookies,
-            cookiesPerClick: game.cookiesPerClick,
-            cookiesPerSecond: game.cookiesPerSecond,
-            upgrades: game.upgrades,
-            achievements: game.achievements,
-            username: game.username
-        },
-        stats: stats,
-        timestamp: Date.now()
-    };
-    
-    localStorage.setItem('cookieClickerSave', JSON.stringify(saveData));
-    showNotification('Game saved locally!');
-}
-
-// Make sure your submitScore() has proper error handling:
-async function submitScore() {
-    if (!game.username) return;
-
-    try {
-        const response = await fetch(`${BACKEND_URL}/leaderboard/submit`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                username: game.username,
-                score: Math.floor(game.totalCookies),
-                replace: true
-            })
+        // Add this event listener to prevent accidental navigation:
+        window.addEventListener('beforeunload', (e) => {
+            // Only trigger if the game has progress
+            if (game.totalCookies > 0 || game.upgrades.some(u => u.owned > 0)) {
+                saveGame();
+            }
         });
 
-        if (!response.ok) throw new Error('Network response was not ok');
-        
-        showNotification('Score submitted to leaderboard!');
-    } catch (error) {
-        console.error('Submission failed, saving locally instead');
-        // Local fallback is already handled in saveGame()
-        throw error; // Re-throw so goBack() knows it failed
-    }
-}
+        // Update your back button event listener:
+        document.getElementById('back-btn').addEventListener('click', async (e) => {
+            e.preventDefault();
+            await goBack();
+        });
+
+        // Update your existing saveGame() function to ensure it's robust:
+        function saveGame() {
+            const saveData = {
+                game: {
+                    cookies: game.cookies,
+                    totalCookies: game.totalCookies,
+                    cookiesPerClick: game.cookiesPerClick,
+                    cookiesPerSecond: game.cookiesPerSecond,
+                    upgrades: game.upgrades,
+                    achievements: game.achievements,
+                    username: game.username
+                },
+                stats: stats,
+                timestamp: Date.now()
+            };
+            
+            localStorage.setItem('cookieClickerSave', JSON.stringify(saveData));
+            showNotification('Game saved locally!');
+        }
+
+        // Make sure your submitScore() has proper error handling:
+        async function submitScore() {
+            if (!game.username) return;
+
+            try {
+                const response = await fetch(`${BACKEND_URL}/leaderboard/submit`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        username: game.username,
+                        score: Math.floor(game.totalCookies),
+                        replace: true
+                    })
+                });
+
+                if (!response.ok) throw new Error('Network response was not ok');
+                
+                showNotification('Score submitted to leaderboard!');
+            } catch (error) {
+                console.error('Submission failed, saving locally instead');
+                // Local fallback is already handled in saveGame()
+                throw error; // Re-throw so goBack() knows it failed
+            }
+        }
+
+        // Add welcome message function
+        function updateWelcomeMessage() {
+            const welcomeElement = document.getElementById('welcome-message');
+            if (game.username) {
+                welcomeElement.textContent = `Welcome back, ${game.username}!`;
+            } else {
+                welcomeElement.textContent = '';
+            }
+        }
+
         // List of valid usernames
         const validUsernames = [
             "Joshua The Mobile",
@@ -711,6 +745,7 @@ async function submitScore() {
         const submitUsernameBtn = document.getElementById('submit-username');
         const usernameError = document.getElementById('username-error');
         const gameContent = document.getElementById('game-content');
+        const welcomeMessage = document.getElementById('welcome-message');
 
         // Initialize the game
         async function init() {
@@ -730,18 +765,19 @@ async function submitScore() {
         }
 
         function verifyUsername() {
-    const enteredUsername = usernameInput.value.trim(); // Ensure no extra spaces
+            const enteredUsername = usernameInput.value.trim(); // Ensure no extra spaces
 
-    if (validUsernames.includes(enteredUsername)) {
-        game.username = enteredUsername; // Assign the full username
-        usernameModal.style.display = 'none';
-        gameContent.style.display = 'block';
-        startGame();
-    } else {
-        usernameError.textContent = `Sorry, "${enteredUsername}" was not found in the database. Please contact Joshua or a mentor if you cannot get in.`;
-        usernameError.style.display = 'block';
-    }
-}
+            if (validUsernames.includes(enteredUsername)) {
+                game.username = enteredUsername; // Assign the full username
+                updateWelcomeMessage(); // Add welcome message
+                usernameModal.style.display = 'none';
+                gameContent.style.display = 'block';
+                startGame();
+            } else {
+                usernameError.textContent = `Sorry, "${enteredUsername}" was not found in the database. Please contact Joshua or a mentor if you cannot get in.`;
+                usernameError.style.display = 'block';
+            }
+        }
 
         async function startGame() {
             game.upgrades = JSON.parse(JSON.stringify(upgradesData));
@@ -1009,27 +1045,19 @@ async function submitScore() {
 
         // Render leaderboard
         function renderLeaderboard() {
-    leaderboardContainer.innerHTML = '';
-    
-    // Display top 10 scores
-    game.leaderboard.slice(0, 10).forEach((entry, index) => {
-        const entryEl = document.createElement('div');
-        entryEl.className = 'leaderboard-entry';
-        entryEl.innerHTML = `
-            <div class="leaderboard-name">${index + 1}. ${entry.username}</div>
-            <div class="leaderboard-score">${formatNumber(entry.score)} cookies</div>
-        `;
-        leaderboardContainer.appendChild(entryEl);
-    });
-    
-    // Add message if leaderboard is empty
-    if (game.leaderboard.length === 0) {
-        const emptyMessage = document.createElement('div');
-        emptyMessage.className = 'leaderboard-entry';
-        emptyMessage.textContent = 'No scores submitted yet';
-        leaderboardContainer.appendChild(emptyMessage);
-    }
-}
+            leaderboardContainer.innerHTML = '';
+            
+            // Display top scores
+            game.leaderboard.slice(0, 10).forEach((entry, index) => {
+                const entryEl = document.createElement('div');
+                entryEl.className = 'leaderboard-entry';
+                entryEl.innerHTML = `
+                    <div class="leaderboard-name">${index + 1}. ${entry.username}</div>
+                    <div class="leaderboard-score">${formatNumber(entry.score)} cookies</div>
+                `;
+                leaderboardContainer.appendChild(entryEl);
+            });
+            
             // Add message if leaderboard is empty
             if (game.leaderboard.length === 0) {
                 const emptyMessage = document.createElement('div');
@@ -1037,6 +1065,7 @@ async function submitScore() {
                 emptyMessage.textContent = 'No scores submitted yet';
                 leaderboardContainer.appendChild(emptyMessage);
             }
+        }
 
         // Fetch leaderboard from backend
         async function fetchLeaderboard() {
@@ -1058,86 +1087,86 @@ async function submitScore() {
 
         // Submit score to backend
         async function submitScore() {
-    if (!game.username) {
-        showNotification('Please set a username first!');
-        return;
-    }
-
-    // Prepare submission data - using exact username and current cookies only
-    const submissionData = {
-        username: game.username, // Preserve exact username with spaces
-        score: Math.floor(game.cookies), // Submit only current cookies (not including CPS)
-        replace: true // Replace existing entry for this username
-    };
-
-    try {
-        const response = await fetch(`${BACKEND_URL}/leaderboard/submit`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(submissionData)
-        });
-
-        if (!response.ok) {
-            throw new Error(`Server responded with ${response.status}`);
-        }
-
-        const result = await response.json();
-        
-        if (result.status === 'success') {
-            // Update leaderboard display
-            await fetchLeaderboard();
-            
-            // Show success notification with exact submitted values
-            showNotification(`Submitted ${formatNumber(submissionData.score)} cookies as "${submissionData.username}"`);
-        } else {
-            throw new Error(result.message || 'Unknown server error');
-        }
-    } catch (error) {
-        console.error('Error submitting score:', error);
-        
-        // Fallback to local storage
-        const cleanUsername = game.username.trim();
-        const exactScore = Math.floor(game.cookies);
-        
-        // Find existing entry
-        const existingIndex = game.leaderboard.findIndex(
-            entry => entry.username.trim() === cleanUsername
-        );
-        
-        if (existingIndex !== -1) {
-            // Replace if new score is higher
-            if (exactScore > game.leaderboard[existingIndex].score) {
-                game.leaderboard[existingIndex] = {
-                    username: game.username, // Keep original formatting
-                    score: exactScore
-                };
+            if (!game.username) {
+                showNotification('Please set a username first!');
+                return;
             }
-        } else {
-            // Add new entry
-            game.leaderboard.push({
-                username: game.username, // Keep original formatting
-                score: exactScore
-            });
+
+            // Prepare submission data - using exact username and current cookies only
+            const submissionData = {
+                username: game.username, // Preserve exact username with spaces
+                score: Math.floor(game.cookies), // Submit only current cookies (not including CPS)
+                replace: true // Replace existing entry for this username
+            };
+
+            try {
+                const response = await fetch(`${BACKEND_URL}/leaderboard/submit`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(submissionData)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Server responded with ${response.status}`);
+                }
+
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    // Update leaderboard display
+                    await fetchLeaderboard();
+                    
+                    // Show success notification with exact submitted values
+                    showNotification(`Submitted ${formatNumber(submissionData.score)} cookies as "${submissionData.username}"`);
+                } else {
+                    throw new Error(result.message || 'Unknown server error');
+                }
+            } catch (error) {
+                console.error('Error submitting score:', error);
+                
+                // Fallback to local storage
+                const cleanUsername = game.username.trim();
+                const exactScore = Math.floor(game.cookies);
+                
+                // Find existing entry
+                const existingIndex = game.leaderboard.findIndex(
+                    entry => entry.username.trim() === cleanUsername
+                );
+                
+                if (existingIndex !== -1) {
+                    // Replace if new score is higher
+                    if (exactScore > game.leaderboard[existingIndex].score) {
+                        game.leaderboard[existingIndex] = {
+                            username: game.username, // Keep original formatting
+                            score: exactScore
+                        };
+                    }
+                } else {
+                    // Add new entry
+                    game.leaderboard.push({
+                        username: game.username, // Keep original formatting
+                        score: exactScore
+                    });
+                }
+                
+                // Sort and save
+                game.leaderboard.sort((a, b) => b.score - a.score);
+                localStorage.setItem('cookieClickerLeaderboard', JSON.stringify(game.leaderboard));
+                
+                // Update display
+                renderLeaderboard();
+                
+                // Show appropriate notification
+                if (existingIndex !== -1) {
+                    showNotification(`Updated local score: ${formatNumber(exactScore)} cookies`);
+                } else {
+                    showNotification(`Saved locally: ${formatNumber(exactScore)} cookies`);
+                }
+            }
         }
-        
-        // Sort and save
-        game.leaderboard.sort((a, b) => b.score - a.score);
-        localStorage.setItem('cookieClickerLeaderboard', JSON.stringify(game.leaderboard));
-        
-        // Update display
-        renderLeaderboard();
-        
-        // Show appropriate notification
-        if (existingIndex !== -1) {
-            showNotification(`Updated local score: ${formatNumber(exactScore)} cookies`);
-        } else {
-            showNotification(`Saved locally: ${formatNumber(exactScore)} cookies`);
-        }
-    }
-}
-    // Remove this redundant catch block as it is not part of a valid try-catch structure.
+
         // Check for unlocked achievements
         function checkAchievements() {
             let needsUpdate = false;
@@ -1260,6 +1289,7 @@ async function submitScore() {
                     if (Date.now() - parsedData.timestamp < 7 * 24 * 60 * 60 * 1000) {
                         Object.assign(game, parsedData.game);
                         Object.assign(stats, parsedData.stats);
+                        updateWelcomeMessage(); // Update welcome message when loading
                         
                         // Recalculate CPS
                         calculateCPS();
@@ -1276,70 +1306,70 @@ async function submitScore() {
         }
 
         // Admin password for clearing the leaderboard
-const ADMIN_PASSWORD = "Quantum Toast";
-// Add these at the top with other DOM elements
-const passwordModal = document.getElementById('password-modal');
-const passwordInput = document.getElementById('password-input');
-const submitPasswordBtn = document.getElementById('submit-password');
-const cancelPasswordBtn = document.getElementById('cancel-password');
-const passwordError = document.getElementById('password-error');
+        const ADMIN_PASSWORD = "Quantum Toast";
+        // Add these at the top with other DOM elements
+        const passwordModal = document.getElementById('password-modal');
+        const passwordInput = document.getElementById('password-input');
+        const submitPasswordBtn = document.getElementById('submit-password');
+        const cancelPasswordBtn = document.getElementById('cancel-password');
+        const passwordError = document.getElementById('password-error');
 
-// Replace the existing clearLeaderboard function with:
-async function clearLeaderboard() {
-    passwordModal.style.display = 'flex';
-    passwordInput.value = '';
-    passwordError.style.display = 'none';
-    passwordInput.focus();
-}
-
-// Add these event listeners in your setupEventListeners() function:
-submitPasswordBtn.addEventListener('click', handlePasswordSubmit);
-cancelPasswordBtn.addEventListener('click', () => {
-    passwordModal.style.display = 'none';
-});
-
-passwordInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-        handlePasswordSubmit();
-    }
-});
-
-async function handlePasswordSubmit() {
-    if (passwordInput.value === ADMIN_PASSWORD) {
-        try {
-            const response = await fetch(`${BACKEND_URL}/leaderboard/clear`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                }
-            });
-
-            if (!response.ok) throw new Error('Failed to clear leaderboard');
-
-            const result = await response.json();
-            
-            if (result.status === 'success') {
-                passwordModal.style.display = 'none';
-                game.leaderboard = [];
-                renderLeaderboard();
-                showNotification('Leaderboard cleared successfully!');
-            } else {
-                throw new Error(result.message || 'Failed to clear leaderboard');
-            }
-        } catch (error) {
-            console.error("Error clearing leaderboard:", error);
-            passwordError.textContent = "Error: " + error.message;
-            passwordError.style.display = 'block';
+        // Replace the existing clearLeaderboard function with:
+        async function clearLeaderboard() {
+            passwordModal.style.display = 'flex';
+            passwordInput.value = '';
+            passwordError.style.display = 'none';
+            passwordInput.focus();
         }
-    } else {
-        passwordError.textContent = "Incorrect password";
-        passwordError.style.display = 'block';
-    }
-}
 
-// Add event listener to the clear leaderboard button
-const clearLeaderboardBtn = document.getElementById('clear-leaderboard-btn');
-clearLeaderboardBtn.addEventListener('click', clearLeaderboard);
+        // Add these event listeners in your setupEventListeners() function:
+        submitPasswordBtn.addEventListener('click', handlePasswordSubmit);
+        cancelPasswordBtn.addEventListener('click', () => {
+            passwordModal.style.display = 'none';
+        });
+
+        passwordInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                handlePasswordSubmit();
+            }
+        });
+
+        async function handlePasswordSubmit() {
+            if (passwordInput.value === ADMIN_PASSWORD) {
+                try {
+                    const response = await fetch(`${BACKEND_URL}/leaderboard/clear`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    });
+
+                    if (!response.ok) throw new Error('Failed to clear leaderboard');
+
+                    const result = await response.json();
+                    
+                    if (result.status === 'success') {
+                        passwordModal.style.display = 'none';
+                        game.leaderboard = [];
+                        renderLeaderboard();
+                        showNotification('Leaderboard cleared successfully!');
+                    } else {
+                        throw new Error(result.message || 'Failed to clear leaderboard');
+                    }
+                } catch (error) {
+                    console.error("Error clearing leaderboard:", error);
+                    passwordError.textContent = "Error: " + error.message;
+                    passwordError.style.display = 'block';
+                }
+            } else {
+                passwordError.textContent = "Incorrect password";
+                passwordError.style.display = 'block';
+            }
+        }
+
+        // Add event listener to the clear leaderboard button
+        const clearLeaderboardBtn = document.getElementById('clear-leaderboard-btn');
+        clearLeaderboardBtn.addEventListener('click', clearLeaderboard);
 
         // Reset game
         function resetGame() {
