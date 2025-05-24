@@ -6,6 +6,32 @@
     <title>Deluxe Cookie Clicker</title>
     <style>
         /* Add to your existing modal styles */
+        /* Add to top of your CSS */
+body {
+    background-color: var(--background-color);
+    margin: 0;
+    padding: 0;
+}
+
+.header {
+    background-color: var(--background-color);
+    padding: 10px 0;
+    text-align: center;
+    width: 100%;
+}
+
+.welcome-message {
+    color: var(--primary-color);
+    font-size: 1.2em;
+    margin-bottom: 5px;
+}
+
+/* Add to your existing #cookies-per-second style */
+#cookies-per-second::after {
+    content: " (CPS = Cookies Per Second)";
+    font-size: 0.8em;
+    opacity: 0.7;
+}
 .password-modal {
     display: none;
     position: fixed;
@@ -1273,6 +1299,17 @@ async function submitScore() {
                 }
             }
         }
+        function updateWelcomeMessage() {
+    const welcomeElement = document.getElementById('welcome-message');
+    if (game.username) {
+        welcomeElement.textContent = `Welcome back, ${game.username}!`;
+    } else {
+        welcomeElement.textContent = '';
+    }
+}
+
+// Call this after setting the username
+updateWelcomeMessage();
 
         // Admin password for clearing the leaderboard
 const ADMIN_PASSWORD = "Quantum Toast";
