@@ -1003,29 +1003,42 @@
 
         // Render achievements
         function renderAchievements() {
-            achievementsContainer.innerHTML = '';
+    achievementsContainer.innerHTML = '';
+    
+    game.achievements.forEach(achievement => {
+        const achievementEl = document.createElement('div');
+        achievementEl.className = `achievement ${achievement.unlocked ? 'unlocked' : 'locked'}`;
+        
+        if (achievement.unlocked) {
+            achievementEl.innerHTML = `
+                <div class="achievement-name">${achievement.name}</div>
+                <div class="achievement-requirement">${achievement.description}</div>
+                <div>Bonus: +${(achievement.bonus * 100)}% CPS</div>
+            `;
+        } else {
+            // Handle different achievement types differently
+            let requirementText;
+            if (achievement.type) {
+                // For type-based achievements (like mine)
+                requirementText = `Own ${achievement.requirement} ${achievement.type}`;
+            } else if (achievement.clicks) {
+                // For click-based achievements
+                requirementText = `Click ${formatNumber(achievement.requirement)} times`;
+            } else {
+                // For regular cookie count achievements
+                requirementText = `Bake ${formatNumber(achievement.requirement)} cookies`;
+            }
             
-            game.achievements.forEach(achievement => {
-                const achievementEl = document.createElement('div');
-                achievementEl.className = `achievement ${achievement.unlocked ? 'unlocked' : 'locked'}`;
-                
-                if (achievement.unlocked) {
-                    achievementEl.innerHTML = `
-                        <div class="achievement-name">${achievement.name}</div>
-                        <div class="achievement-requirement">${achievement.description}</div>
-                        <div>Bonus: +${(achievement.bonus * 100)}% CPS</div>
-                    `;
-                } else {
-                    achievementEl.innerHTML = `
-                        <div class="achievement-name">???</div>
-                        <div class="achievement-requirement">${achievement.clicks ? 'Click' : 'Bake'} ${formatNumber(achievement.requirement)} ${achievement.clicks ? 'times' : 'cookies'}</div>
-                    `;
-                }
-                
-                achievementsContainer.appendChild(achievementEl);
-            });
+            achievementEl.innerHTML = `
+                <div class="achievement-name">???</div>
+                <div class="achievement-requirement">${requirementText}</div>
+            `;
         }
-
+        
+        achievementsContainer.appendChild(achievementEl);
+    });
+}
+                achievementsContainer.appendChild(achievementEl);
         // Update achievements display
         function updateAchievementsDisplay() {
             const achievementElements = achievementsContainer.querySelectorAll('.achievement');
