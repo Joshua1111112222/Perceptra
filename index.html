@@ -1384,7 +1384,14 @@ function submitData() {
         }
         // Loading screen functionality
 // Loading screen functionality (updated to trigger on every visit)
+// Enhanced loading screen for iOS PWA
+let loadingInterval;
+let isSimulatingLoad = false;
+
 function simulateLoading() {
+    if (isSimulatingLoad) return;
+    isSimulatingLoad = true;
+    
     const loadingScreen = document.getElementById('loading-screen');
     const loadingBar = document.getElementById('loading-bar');
     const loadingPercentage = document.getElementById('loading-percentage');
@@ -1399,22 +1406,25 @@ function simulateLoading() {
     
     let progress = 0;
     const messages = [
-        "Initializing...",
-        "Loading resources...",
-        "Connecting to database...",
-        "Almost there...",
+        "Initializing Perceptra...",
+        "Loading scouting data...",
+        "Syncing with server...",
         "Preparing interface...",
-        "Ready to scout!"
+        "Almost ready...",
+        "Let's scout some robots!"
     ];
     
-    const interval = setInterval(() => {
-        progress += Math.random() * 10;
+    // Clear any existing interval
+    if (loadingInterval) clearInterval(loadingInterval);
+    
+    loadingInterval = setInterval(() => {
+        progress += Math.random() * 15;
         if (progress > 100) progress = 100;
         
         loadingBar.style.width = `${progress}%`;
         loadingPercentage.textContent = `${Math.floor(progress)}%`;
         
-        // Update messages at different progress points
+        // Update messages
         if (progress < 20) loadingMessage.textContent = messages[0];
         else if (progress < 40) loadingMessage.textContent = messages[1];
         else if (progress < 60) loadingMessage.textContent = messages[2];
@@ -1423,39 +1433,62 @@ function simulateLoading() {
         else loadingMessage.textContent = messages[5];
         
         if (progress === 100) {
-            clearInterval(interval);
+            clearInterval(loadingInterval);
             setTimeout(() => {
                 loadingScreen.style.opacity = '0';
                 setTimeout(() => {
                     loadingScreen.style.display = 'none';
+                    isSimulatingLoad = false;
                 }, 500);
             }, 500);
         }
-    }, 200);
+    }, 150);
 }
 
-// Event listeners to trigger loading screen
-function setupLoadingScreen() {
-    // Initial load
-    simulateLoading();
-    
-    // When page becomes visible again
+// Special handling for iOS PWAs
+function handleIOSPWAVisibility() {
+    // Track when app goes to background
     document.addEventListener('visibilitychange', function() {
-        if (!document.hidden) {
-            simulateLoading();
+        if (document.visibilityState === 'hidden') {
+            // Prepare for next load when app returns
+            isSimulatingLoad = false;
         }
     });
     
-    // For mobile devices when app returns from background
+    // iOS-specific page show event
     window.addEventListener('pageshow', function(event) {
         if (event.persisted) {
             simulateLoading();
         }
     });
+    
+    // Additional iOS PWA resume event
+    window.addEventListener('focus', function() {
+        simulateLoading();
+    });
 }
 
-// Start the loading screen system
-document.addEventListener('DOMContentLoaded', setupLoadingScreen);
+// Start loading system
+document.addEventListener('DOMContentLoaded', function() {
+    simulateLoading();
+    handleIOSPWAVisibility();
+    
+    // Extra trigger for PWA launch
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+        window.addEventListener('appinstalled', function() {
+            simulateLoading();
+        });
+    }
+});
+
+// Force reload when PWA is reopened
+if (window.navigator.standalone) {
+    window.addEventListener('pageshow', function(event) {
+        if (event.persisted) {
+            window.location.reload();
+        }
+    });
+}
         
     </script>
 </body>
