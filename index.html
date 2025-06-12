@@ -1383,11 +1383,19 @@ function submitData() {
             });
         }
         // Loading screen functionality
+// Loading screen functionality (updated to trigger on every visit)
 function simulateLoading() {
     const loadingScreen = document.getElementById('loading-screen');
     const loadingBar = document.getElementById('loading-bar');
     const loadingPercentage = document.getElementById('loading-percentage');
     const loadingMessage = document.getElementById('loading-message');
+    
+    // Reset loading screen
+    loadingScreen.style.display = 'flex';
+    loadingScreen.style.opacity = '1';
+    loadingBar.style.width = '0%';
+    loadingPercentage.textContent = '0%';
+    loadingMessage.textContent = 'Initializing...';
     
     let progress = 0;
     const messages = [
@@ -1426,8 +1434,28 @@ function simulateLoading() {
     }, 200);
 }
 
-// Start loading simulation when page loads
-window.addEventListener('load', simulateLoading);
+// Event listeners to trigger loading screen
+function setupLoadingScreen() {
+    // Initial load
+    simulateLoading();
+    
+    // When page becomes visible again
+    document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) {
+            simulateLoading();
+        }
+    });
+    
+    // For mobile devices when app returns from background
+    window.addEventListener('pageshow', function(event) {
+        if (event.persisted) {
+            simulateLoading();
+        }
+    });
+}
+
+// Start the loading screen system
+document.addEventListener('DOMContentLoaded', setupLoadingScreen);
         
     </script>
 </body>
