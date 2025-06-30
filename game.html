@@ -772,19 +772,19 @@
         }
 
         function verifyUsername() {
-            const enteredUsername = usernameInput.value.trim(); // Ensure no extra spaces
+    const enteredUsername = usernameInput.value.trim(); // Ensure no extra spaces
 
-            if (validUsernames.includes(enteredUsername)) {
-                game.username = enteredUsername; // Assign the full username
-                updateWelcomeMessage(); // Add welcome message
-                usernameModal.style.display = 'none';
-                gameContent.style.display = 'block';
-                startGame();
-            } else {
-                usernameError.textContent = `Sorry, "${enteredUsername}" was not found in the database. Please contact Joshua or a mentor if you cannot get in.`;
-                usernameError.style.display = 'block';
-            }
-        }
+    if (validUsernames.includes(enteredUsername)) {
+        game.username = enteredUsername; // Assign the exact username as entered
+        updateWelcomeMessage(); // Add welcome message
+        usernameModal.style.display = 'none';
+        gameContent.style.display = 'block';
+        startGame();
+    } else {
+        usernameError.textContent = `Sorry, "${enteredUsername}" was not found in the database. Please contact Joshua or a mentor if you cannot get in.`;
+        usernameError.style.display = 'block';
+    }
+}
 
         async function startGame() {
             game.upgrades = JSON.parse(JSON.stringify(upgradesData));
