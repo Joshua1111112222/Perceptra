@@ -128,6 +128,28 @@
             margin-bottom: 20px;
             word-break: break-word;
         }
+
+                #admin-btn {
+            background-color: #ffb74d;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.2s;
+            margin: 5px;
+            min-width: 120px;
+        }
+
+        #admin-btn:hover {
+            background-color: #ffa726;
+        }
+
+        #admin-btn:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+        }
     
         .click-effect {
             position: absolute;
@@ -519,6 +541,21 @@
             <button id="submit-username">Submit</button>
         </div>
     </div>
+
+    <!-- Admin Button -->
+<button id="admin-btn">Admin</button>
+
+<!-- Admin Password Modal -->
+<div id="admin-password-modal" class="modal">
+    <div class="modal-content">
+        <h2>Admin Access</h2>
+        <p>Enter the admin password to enable special privileges:</p>
+        <input type="password" id="admin-password-input" class="password-input" placeholder="Password">
+        <div id="admin-password-error" class="error-message" style="display: none;"></div>
+        <button id="admin-password-submit">Submit</button>
+        <button id="admin-password-cancel">Cancel</button>
+    </div>
+</div>
     
     <div id="game-content" style="display: none;">
         <div class="header">
@@ -1415,6 +1452,53 @@
                 localStorage.removeItem('cookieClickerSave');
             }
         }
+
+
+        // Admin Password
+
+// DOM Elements for Admin Modal
+const adminBtn = document.getElementById('admin-btn');
+const adminPasswordModal = document.getElementById('admin-password-modal');
+const adminPasswordInput = document.getElementById('admin-password-input');
+const adminPasswordSubmit = document.getElementById('admin-password-submit');
+const adminPasswordCancel = document.getElementById('admin-password-cancel');
+const adminPasswordError = document.getElementById('admin-password-error');
+
+// Open Admin Modal
+adminBtn.addEventListener('click', () => {
+    adminPasswordModal.style.display = 'flex';
+    adminPasswordInput.value = '';
+    adminPasswordError.style.display = 'none';
+    adminPasswordInput.focus();
+});
+
+// Close Admin Modal
+adminPasswordCancel.addEventListener('click', () => {
+    adminPasswordModal.style.display = 'none';
+});
+
+// Handle Admin Password Submission
+adminPasswordSubmit.addEventListener('click', handleAdminPasswordSubmit);
+adminPasswordInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        handleAdminPasswordSubmit();
+    }
+});
+
+function handleAdminPasswordSubmit() {
+    if (adminPasswordInput.value === ADMIN_PASSWORD) {
+        // Grant Admin Privileges
+        game.cookiesPerSecond = 999999999999999999999;
+        calculateCPS(); // Recalculate CPS
+        updateDisplay(); // Update the display
+        showNotification('Admin privileges granted! Unlimited CPS activated!');
+        adminPasswordModal.style.display = 'none';
+    } else {
+        // Show Error Message
+        adminPasswordError.textContent = "Incorrect password. Try again.";
+        adminPasswordError.style.display = 'block';
+    }
+}
 
         // Setup event listeners
         function setupEventListeners() {
