@@ -556,18 +556,6 @@
         <button id="admin-password-cancel">Cancel</button>
     </div>
 </div>
-
-<!-- Clear All Games Modal -->
-<div id="clear-games-modal" class="modal">
-    <div class="modal-content">
-        <h2>Clear All Games</h2>
-        <p>Enter the admin password to clear all saved games:</p>
-        <input type="password" id="clear-games-password-input" class="password-input" placeholder="Password">
-        <div id="clear-games-password-error" class="error-message" style="display: none;"></div>
-        <button id="clear-games-password-submit">Submit</button>
-        <button id="clear-games-password-cancel">Cancel</button>
-    </div>
-</div>
     
     <div id="game-content" style="display: none;">
         <div class="header">
@@ -612,7 +600,6 @@
         </div>
 
         <button id="clear-leaderboard-btn">Clear Leaderboard</button>
-        <button id="clear-all-games-btn">Clear All Games</button>
         
         <div id="save-notification">Game Saved!</div>
         
@@ -625,14 +612,14 @@
         
         // Update your goBack() function to this:
         async function goBack() {
-            // 1. First save the game to backend
-            await saveGame(); // This uses your existing save function
+            // 1. First save the game locally
+            saveGame(); // This uses your existing save function
             
             // 2. Try to submit score to leaderboard
             try {
                 await submitScore(); // Uses your existing submit function
             } catch (error) {
-                console.log("Score submission failed");
+                console.log("Score submission failed, but local save completed");
             }
             
             // 3. Redirect back after operations complete
@@ -654,7 +641,7 @@
         });
 
         // Update your existing saveGame() function to ensure it's robust:
-        async function saveGame() {
+        function saveGame() {
             const saveData = {
                 game: {
                     cookies: game.cookies,
@@ -669,25 +656,8 @@
                 timestamp: Date.now()
             };
             
-            try {
-                const response = await fetch(`${BACKEND_URL}/game/save`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        username: game.username,
-                        gameData: saveData
-                    })
-                });
-
-                if (!response.ok) throw new Error('Failed to save game');
-                
-                showNotification('Game saved to server!');
-            } catch (error) {
-                console.error('Failed to save to server:', error);
-                showNotification('Failed to save game!');
-            }
+            localStorage.setItem('cookieClickerSave', JSON.stringify(saveData));
+            showNotification('Game saved locally!');
         }
 
         // Make sure your submitScore() has proper error handling:
@@ -711,8 +681,8 @@
                 
                 showNotification('Score submitted to leaderboard!');
             } catch (error) {
-                console.error('Submission failed');
-                showNotification('Failed to submit score!');
+                console.error('Submission failed, saving locally instead');
+                // Local fallback is already handled in saveGame()
                 throw error; // Re-throw so goBack() knows it failed
             }
         }
@@ -824,12 +794,6 @@
         const usernameError = document.getElementById('username-error');
         const gameContent = document.getElementById('game-content');
         const welcomeMessage = document.getElementById('welcome-message');
-        const clearAllGamesBtn = document.getElementById('clear-all-games-btn');
-        const clearGamesModal = document.getElementById('clear-games-modal');
-        const clearGamesPasswordInput = document.getElementById('clear-games-password-input');
-        const clearGamesPasswordSubmit = document.getElementById('clear-games-password-submit');
-        const clearGamesPasswordCancel = document.getElementById('clear-games-password-cancel');
-        const clearGamesPasswordError = document.getElementById('clear-games-password-error');
 
         // Initialize the game
         async function init() {
@@ -842,18 +806,6 @@
             usernameInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
                     verifyUsername();
-                }
-            });
-            
-            // Set up clear all games button
-            clearAllGamesBtn.addEventListener('click', showClearGamesModal);
-            clearGamesPasswordSubmit.addEventListener('click', handleClearGamesPassword);
-            clearGamesPasswordCancel.addEventListener('click', () => {
-                clearGamesModal.style.display = 'none';
-            });
-            clearGamesPasswordInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    handleClearGamesPassword();
                 }
             });
             
@@ -890,7 +842,7 @@
             setInterval(() => { stats.timePlayed += 1; }, 1000);
             
             // Try to load saved game
-            await loadGame();
+            loadGame();
             
             // Setup event listeners
             setupEventListeners();
@@ -1172,9 +1124,12 @@
                 renderLeaderboard();
             } catch (error) {
                 console.error('Error fetching leaderboard:', error);
-                // No fallback to local storage
-                game.leaderboard = [];
-                renderLeaderboard();
+                // Fall back to local storage if available
+                const savedLeaderboard = localStorage.getItem('cookieClickerLeaderboard');
+                if (savedLeaderboard) {
+                    game.leaderboard = JSON.parse(savedLeaderboard);
+                    renderLeaderboard();
+                }
             }
         }
 
@@ -1218,7 +1173,45 @@
                 }
             } catch (error) {
                 console.error('Error submitting score:', error);
-                showNotification('Failed to submit score!');
+                
+                // Fallback to local storage
+                const cleanUsername = game.username.trim();
+                const exactScore = Math.floor(game.cookies);
+                
+                // Find existing entry
+                const existingIndex = game.leaderboard.findIndex(
+                    entry => entry.username.trim() === cleanUsername
+                );
+                
+                if (existingIndex !== -1) {
+                    // Replace if new score is higher
+                    if (exactScore > game.leaderboard[existingIndex].score) {
+                        game.leaderboard[existingIndex] = {
+                            username: game.username, // Keep original formatting
+                            score: exactScore
+                        };
+                    }
+                } else {
+                    // Add new entry
+                    game.leaderboard.push({
+                        username: game.username, // Keep original formatting
+                        score: exactScore
+                    });
+                }
+                
+                // Sort and save
+                game.leaderboard.sort((a, b) => b.score - a.score);
+                localStorage.setItem('cookieClickerLeaderboard', JSON.stringify(game.leaderboard));
+                
+                // Update display
+                renderLeaderboard();
+                
+                // Show appropriate notification
+                if (existingIndex !== -1) {
+                    showNotification(`Updated local score: ${formatNumber(exactScore)} cookies`);
+                } else {
+                    showNotification(`Saved locally: ${formatNumber(exactScore)} cookies`);
+                }
             }
         }
 
@@ -1310,40 +1303,21 @@
         }
 
         // Save game
-        async function saveGame() {
+        function saveGame() {
             const saveData = {
-                game: {
-                    cookies: game.cookies,
-                    totalCookies: game.totalCookies,
-                    cookiesPerClick: game.cookiesPerClick,
-                    cookiesPerSecond: game.cookiesPerSecond,
-                    upgrades: game.upgrades,
-                    achievements: game.achievements,
-                    username: game.username
-                },
+                game: game,
                 stats: stats,
                 timestamp: Date.now()
             };
             
-            try {
-                const response = await fetch(`${BACKEND_URL}/game/save`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        username: game.username,
-                        gameData: saveData
-                    })
-                });
-
-                if (!response.ok) throw new Error('Failed to save game');
-                
-                showNotification('Game saved to server!');
-            } catch (error) {
-                console.error('Failed to save to server:', error);
-                showNotification('Failed to save game!');
-            }
+            localStorage.setItem('cookieClickerSave', JSON.stringify(saveData));
+            
+            // Show notification
+            saveNotification.textContent = 'Game Saved!';
+            saveNotification.classList.add('show-notification');
+            setTimeout(() => {
+                saveNotification.classList.remove('show-notification');
+            }, 2000);
         }
 
         // Auto-save
@@ -1352,17 +1326,17 @@
         }
 
         // Load game
-        async function loadGame() {
-            // Try to load from backend only
-            try {
-                const response = await fetch(`${BACKEND_URL}/game/load/${encodeURIComponent(game.username)}`);
-                if (response.ok) {
-                    const saveData = await response.json();
+        function loadGame() {
+            const saveData = localStorage.getItem('cookieClickerSave');
+            
+            if (saveData) {
+                try {
+                    const parsedData = JSON.parse(saveData);
                     
                     // Only load if save isn't too old (7 days)
-                    if (Date.now() - saveData.timestamp < 7 * 24 * 60 * 60 * 1000) {
-                        Object.assign(game, saveData.game);
-                        Object.assign(stats, saveData.stats);
+                    if (Date.now() - parsedData.timestamp < 7 * 24 * 60 * 60 * 1000) {
+                        Object.assign(game, parsedData.game);
+                        Object.assign(stats, parsedData.stats);
                         updateWelcomeMessage(); // Update welcome message when loading
                         
                         // Recalculate CPS
@@ -1372,14 +1346,10 @@
                         updateDisplay();
                         renderUpgrades();
                         renderAchievements();
-                        showNotification('Game loaded from server!');
-                        return;
                     }
+                } catch (e) {
+                    console.error('Failed to load save:', e);
                 }
-                showNotification('No saved game found on server');
-            } catch (error) {
-                console.error('Failed to load from server:', error);
-                showNotification('Failed to load game from server!');
             }
         }
 
@@ -1478,10 +1448,8 @@
                 renderUpgrades();
                 renderAchievements();
                 
-                // Delete from server
-                fetch(`${BACKEND_URL}/game/delete/${encodeURIComponent(game.username)}`, {
-                    method: 'DELETE'
-                }).catch(err => console.error('Failed to delete from server:', err));
+                // Clear save
+                localStorage.removeItem('cookieClickerSave');
             }
         }
 
@@ -1550,46 +1518,6 @@ function handleAdminPasswordSubmit() {
         adminPasswordError.style.display = 'block';
     }
 }
-
-        // Show clear games modal
-        function showClearGamesModal() {
-            clearGamesModal.style.display = 'flex';
-            clearGamesPasswordInput.value = '';
-            clearGamesPasswordError.style.display = 'none';
-            clearGamesPasswordInput.focus();
-        }
-
-        // Handle clear games password submission
-        async function handleClearGamesPassword() {
-            if (clearGamesPasswordInput.value === ADMIN_PASSWORD) {
-                try {
-                    const response = await fetch(`${BACKEND_URL}/game/clear-all`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        }
-                    });
-
-                    if (!response.ok) throw new Error('Failed to clear all games');
-
-                    const result = await response.json();
-                    
-                    if (result.status === 'success') {
-                        clearGamesModal.style.display = 'none';
-                        showNotification('All games cleared successfully!');
-                    } else {
-                        throw new Error(result.message || 'Failed to clear all games');
-                    }
-                } catch (error) {
-                    console.error("Error clearing all games:", error);
-                    clearGamesPasswordError.textContent = "Error: " + error.message;
-                    clearGamesPasswordError.style.display = 'block';
-                }
-            } else {
-                clearGamesPasswordError.textContent = "Incorrect password";
-                clearGamesPasswordError.style.display = 'block';
-            }
-        }
 
         // Setup event listeners
         function setupEventListeners() {
