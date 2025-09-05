@@ -1144,7 +1144,7 @@
             leaderboardContainer.innerHTML = '';
             
             // Display top scores
-            game.leaderboard.slice(0, 10).forEach((entry, index) {
+            game.leaderboard.slice(0, 10).forEach((entry, index) => {
                 const entryEl = document.createElement('div');
                 entryEl.className = 'leaderboard-entry';
                 entryEl.innerHTML = `
