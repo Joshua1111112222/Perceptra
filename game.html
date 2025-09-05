@@ -625,14 +625,14 @@
         
         // Update your goBack() function to this:
         async function goBack() {
-            // 1. First save the game locally
+            // 1. First save the game to backend
             await saveGame(); // This uses your existing save function
             
             // 2. Try to submit score to leaderboard
             try {
                 await submitScore(); // Uses your existing submit function
             } catch (error) {
-                console.log("Score submission failed, but local save completed");
+                console.log("Score submission failed");
             }
             
             // 3. Redirect back after operations complete
@@ -685,9 +685,8 @@
                 
                 showNotification('Game saved to server!');
             } catch (error) {
-                console.error('Failed to save to server, saving locally instead:', error);
-                localStorage.setItem('cookieClickerSave', JSON.stringify(saveData));
-                showNotification('Game saved locally!');
+                console.error('Failed to save to server:', error);
+                showNotification('Failed to save game!');
             }
         }
 
@@ -712,8 +711,8 @@
                 
                 showNotification('Score submitted to leaderboard!');
             } catch (error) {
-                console.error('Submission failed, saving locally instead');
-                // Local fallback is already handled in saveGame()
+                console.error('Submission failed');
+                showNotification('Failed to submit score!');
                 throw error; // Re-throw so goBack() knows it failed
             }
         }
@@ -1145,7 +1144,7 @@
             leaderboardContainer.innerHTML = '';
             
             // Display top scores
-            game.leaderboard.slice(0, 10).forEach((entry, index) => {
+            game.leaderboard.slice(0, 10).forEach((entry, index) {
                 const entryEl = document.createElement('div');
                 entryEl.className = 'leaderboard-entry';
                 entryEl.innerHTML = `
@@ -1173,12 +1172,9 @@
                 renderLeaderboard();
             } catch (error) {
                 console.error('Error fetching leaderboard:', error);
-                // Fall back to local storage if available
-                const savedLeaderboard = localStorage.getItem('cookieClickerLeaderboard');
-                if (savedLeaderboard) {
-                    game.leaderboard = JSON.parse(savedLeaderboard);
-                    renderLeaderboard();
-                }
+                // No fallback to local storage
+                game.leaderboard = [];
+                renderLeaderboard();
             }
         }
 
@@ -1222,45 +1218,7 @@
                 }
             } catch (error) {
                 console.error('Error submitting score:', error);
-                
-                // Fallback to local storage
-                const cleanUsername = game.username.trim();
-                const exactScore = Math.floor(game.cookies);
-                
-                // Find existing entry
-                const existingIndex = game.leaderboard.findIndex(
-                    entry => entry.username.trim() === cleanUsername
-                );
-                
-                if (existingIndex !== -1) {
-                    // Replace if new score is higher
-                    if (exactScore > game.leaderboard[existingIndex].score) {
-                        game.leaderboard[existingIndex] = {
-                            username: game.username, // Keep original formatting
-                            score: exactScore
-                        };
-                    }
-                } else {
-                    // Add new entry
-                    game.leaderboard.push({
-                        username: game.username, // Keep original formatting
-                        score: exactScore
-                    });
-                }
-                
-                // Sort and save
-                game.leaderboard.sort((a, b) => b.score - a.score);
-                localStorage.setItem('cookieClickerLeaderboard', JSON.stringify(game.leaderboard));
-                
-                // Update display
-                renderLeaderboard();
-                
-                // Show appropriate notification
-                if (existingIndex !== -1) {
-                    showNotification(`Updated local score: ${formatNumber(exactScore)} cookies`);
-                } else {
-                    showNotification(`Saved locally: ${formatNumber(exactScore)} cookies`);
-                }
+                showNotification('Failed to submit score!');
             }
         }
 
@@ -1383,9 +1341,8 @@
                 
                 showNotification('Game saved to server!');
             } catch (error) {
-                console.error('Failed to save to server, saving locally instead:', error);
-                localStorage.setItem('cookieClickerSave', JSON.stringify(saveData));
-                showNotification('Game saved locally!');
+                console.error('Failed to save to server:', error);
+                showNotification('Failed to save game!');
             }
         }
 
@@ -1396,7 +1353,7 @@
 
         // Load game
         async function loadGame() {
-            // Try to load from backend first
+            // Try to load from backend only
             try {
                 const response = await fetch(`${BACKEND_URL}/game/load/${encodeURIComponent(game.username)}`);
                 if (response.ok) {
@@ -1419,35 +1376,10 @@
                         return;
                     }
                 }
+                showNotification('No saved game found on server');
             } catch (error) {
                 console.error('Failed to load from server:', error);
-            }
-            
-            // Fall back to local storage
-            const localSaveData = localStorage.getItem('cookieClickerSave');
-            
-            if (localSaveData) {
-                try {
-                    const parsedData = JSON.parse(localSaveData);
-                    
-                    // Only load if save isn't too old (7 days)
-                    if (Date.now() - parsedData.timestamp < 7 * 24 * 60 * 60 * 1000) {
-                        Object.assign(game, parsedData.game);
-                        Object.assign(stats, parsedData.stats);
-                        updateWelcomeMessage(); // Update welcome message when loading
-                        
-                        // Recalculate CPS
-                        calculateCPS();
-                        
-                        // Update display
-                        updateDisplay();
-                        renderUpgrades();
-                        renderAchievements();
-                        showNotification('Game loaded from local storage!');
-                    }
-                } catch (e) {
-                    console.error('Failed to load save:', e);
-                }
+                showNotification('Failed to load game from server!');
             }
         }
 
@@ -1546,10 +1478,7 @@
                 renderUpgrades();
                 renderAchievements();
                 
-                // Clear save
-                localStorage.removeItem('cookieClickerSave');
-                
-                // Also try to delete from server
+                // Delete from server
                 fetch(`${BACKEND_URL}/game/delete/${encodeURIComponent(game.username)}`, {
                     method: 'DELETE'
                 }).catch(err => console.error('Failed to delete from server:', err));
