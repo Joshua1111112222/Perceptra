@@ -1489,9 +1489,28 @@ function handleAdminPasswordSubmit() {
     if (adminPasswordInput.value === ADMIN_PASSWORD) {
         // Grant Admin Privileges
         game.cookiesPerSecond = 999999999999999999999;
-        calculateCPS(); // Recalculate CPS
-        updateDisplay(); // Update the display
-        showNotification('Admin privileges granted! Unlimited CPS activated!');
+        game.cookiesPerClick = 999999999999999999999;
+        game.cookies = 999999999999999999999;
+        game.totalCookies = 999999999999999999999;
+        
+        // Unlock all upgrades and achievements
+        game.upgrades.forEach(upgrade => {
+            upgrade.owned = 999;
+        });
+        
+        game.achievements.forEach(achievement => {
+            achievement.unlocked = true;
+        });
+        
+        // Recalculate CPS
+        calculateCPS();
+        
+        // Update the display
+        updateDisplay();
+        renderUpgrades();
+        renderAchievements();
+        
+        showNotification('Admin privileges granted! Unlimited everything activated!');
         adminPasswordModal.style.display = 'none';
     } else {
         // Show Error Message
